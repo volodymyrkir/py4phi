@@ -21,6 +21,9 @@ jobs:
     - name: Analysing the code with ruff
       run: |
         ruff check .
+    - name: Analysing the tests with ruff
+      run: |    
+        ruff check --config ruff-test.toml tests/
     - name: Run tests
       run: |
         pytest ./tests/
