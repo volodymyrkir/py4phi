@@ -3,5 +3,5 @@ from py4phi.base_reader import BaseReader
 
 
 def test_base_reader():
-    assert BaseReader.supported_file_types is None
+    assert len(BaseReader.supported_file_types) == 0
 
