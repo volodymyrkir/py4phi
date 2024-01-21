@@ -20,7 +20,7 @@ jobs:
         pip install -r requirements-test.txt
     - name: Analysing the code with ruff
       run: |
-        ruff check .
+        ruff check py4phi/
     - name: Analysing the tests with ruff
       run: |    
         ruff check --config ruff-test.toml tests/
