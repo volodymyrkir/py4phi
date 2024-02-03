@@ -1,5 +1,5 @@
 """Contains tests for the BaseReader class."""
-from py4phi.base_reader import BaseReader
+from py4phi.readers.base_readers.base_reader import BaseReader
 
 
 def test_base_reader():
