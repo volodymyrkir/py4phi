@@ -27,13 +27,15 @@ class _BaseEncryptor(ABC):
         """
 
     @abstractmethod
-    def _decrypt_column(self, column: str):
+    def _decrypt_column(self, column: str, decryption_dict: dict[str, str]):
         """
         Decrypt dataframe column.
 
         Args:
         ----
-            column (str): The column to be decrypted.
+        column (str): The column to be decrypted.
+        decryption_dict (dict[str, dict]): The decryption dictionary
+                                            with key and aad keys.
 
         Returns: DataFrame with decrypted column.
 
@@ -43,22 +45,27 @@ class _BaseEncryptor(ABC):
         """
         Encrypt each dataframe column.
 
-        Returns: Encrypted dataframe.
+        Returns: Encrypted dataframe and columns dict with decryption details.
 
         """
         for column in self._columns:
             self._df = self._encrypt_column(column)
-        return self._df
+        return self._df, self._columns
 
-    def _decrypt(self):
+    def decrypt(self, decryption_dict: dict[str, dict]):
         """
         Encrypt each dataframe column.
 
-        Returns: Encrypted dataframe.
+        Args:
+        ----
+        decryption_dict (dict[str, dict]): Dictionary containing
+                                            decryption details for each column.
+
+        Returns: Decrypted dataframe.
 
         """
         for column in self._columns:
-            self._df = self._decrypt_column(column)
+            self._df = self._decrypt_column(column, decryption_dict[column])
         return self._df
 
     def _get_and_save_salt(self, column: str) -> None:
