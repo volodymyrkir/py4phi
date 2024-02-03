@@ -34,13 +34,19 @@ class _PySparkEncryptor(_BaseEncryptor):
                             )
                 )
 
-    def _decrypt_column(self, column: str) -> DataFrame:
+    def _decrypt_column(
+            self,
+            column: str,
+            decryption_dict: dict[str, str]
+    ) -> DataFrame:
         """
         Decrypt dataframe column.
 
         Args:
         ----
-            column (str): The column to be decrypted.
+        column (str): The column to be decrypted.
+        decryption_dict (dict[str, dict]): The decryption dictionary
+                                            with key and aad keys.
 
         Returns: PySpark DataFrame with decrypted column.
 
@@ -52,8 +58,8 @@ class _PySparkEncryptor(_BaseEncryptor):
                 .withColumn(column,
                             f.aes_decrypt(
                                     input=f.unbase64(f.col(column)),
-                                    key=f.lit(self._columns[column]['key']),
-                                    aad=f.lit(self._columns[column]['aad'])
+                                    key=f.lit(decryption_dict['key']),
+                                    aad=f.lit(decryption_dict['aad'])
                                 ).cast(t.StringType())
                             )
                 )

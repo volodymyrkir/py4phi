@@ -1,8 +1,10 @@
 """Module containing main logic and entrypoint for library."""
+import os
 from typing import Optional
 
 from pyspark.sql import DataFrame
 
+from py4phi.config_processor import ConfigProcessor
 from py4phi.readers.base_readers.base_reader import BaseReader
 from py4phi.readers.pyspark_reader import PySparkReader
 from py4phi._encryption._pyspark_encryptor import _PySparkEncryptor
@@ -19,7 +21,9 @@ class Controller:
     def __init__(self, reader: BaseReader):
         self._reader = reader
         self.__encryptor = None
+        self.__columns_data = None
         self._current_df = self._reader.df
+        self._config_processor = ConfigProcessor()
 
     def print_current_df(self) -> None:
         """
@@ -30,7 +34,7 @@ class Controller:
         """
         self._current_df.show()
 
-    def encrypt(self, columns_to_encrypt: list[str]):
+    def encrypt_and_save(self, columns_to_encrypt: list[str]):
         """
         Encrypt specified columns in dataset.
 
@@ -46,15 +50,23 @@ class Controller:
             if not self.__encryptor
             else self.__encryptor
         )
-        self._current_df = self.__encryptor.encrypt()
+        self._current_df, self.__columns_data = self.__encryptor.encrypt()
+        self._config_processor.save_config(self.__columns_data)
 
-    def decrypt(self, columns_to_decrypt: list[str]):
+    def decrypt(
+            self,
+            columns_to_decrypt: list[str],
+            configs_path: str = os.getcwd()
+    ) -> None:
         """
         Decrypt specified columns in dataset.
 
         Args:
         ----
         columns_to_decrypt (list[str]): List of columns to be decrypted.
+        configs_path (str, optional): Path to the directory,
+                                        containing the decryption configs.
+                                        Defaults to os.getcwd().
 
         Returns: Decrypted dataframe.
 
@@ -65,7 +77,8 @@ class Controller:
             if not self.__encryptor
             else self.__encryptor
         )
-        self._current_df = self.__encryptor._decrypt()
+        decryption_dict = self._config_processor.read_config(configs_path)
+        self._current_df = self.__encryptor.decrypt(decryption_dict)
 
 
 def init_from_path(
