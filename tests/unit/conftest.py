@@ -1,9 +1,9 @@
-from unittest import mock
-
 import pytest
+from pyspark.sql import SparkSession
 
 
-@pytest.fixture
-def mocker() -> mock:
-    return mock
-
+@pytest.fixture()
+def spark_session():
+    spark = SparkSession.builder.master("local").getOrCreate()
+    yield spark
+    spark.stop()
