@@ -19,7 +19,7 @@ class BaseDatasetHandler(ABC):
         methods = {
             'CSV': (self._read_csv, self._write_csv),
             'PARQUET': (self._read_parquet, self._write_parquet)
-        }.get(file_type)
+        }.get(file_type.upper())
         if not methods:
             raise NotImplementedError(f'No reading method for file type {file_type}')
         return methods
@@ -63,7 +63,7 @@ class BaseDatasetHandler(ABC):
 
         """
         reading_method, writing_method = self._get_interaction_methods(
-            file_type=file_type.upper()
+            file_type=file_type
         )
         self._df = reading_method(path, **kwargs)
         self._writing_method = writing_method
