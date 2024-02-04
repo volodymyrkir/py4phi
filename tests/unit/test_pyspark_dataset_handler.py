@@ -30,7 +30,7 @@ def test_get_interaction_methods_correct(handler, file_type, funcs):
 @pytest.mark.parametrize('file_type', [
    'json', 'orc', 'enigma', 'iceberg'
 ])
-def test_get_interaction_methods_correct(handler, file_type):
+def test_get_interaction_methods_raise(handler, file_type):
     with pytest.raises(NotImplementedError):
         handler._get_interaction_methods(file_type)
 
