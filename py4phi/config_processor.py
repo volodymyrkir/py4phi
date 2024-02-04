@@ -32,7 +32,7 @@ class ConfigProcessor:
     def save_config(
             self,
             columns: dict[str, dict],
-            path: str = os.getcwd(),
+            path: str,
             encrypt_config: bool = True
     ) -> None:
         """
@@ -41,8 +41,8 @@ class ConfigProcessor:
         Args:
         ----
         columns (dict[str, dict]): Encryption details dict.
-        path (str, optional): Path to save all configs.
-                                Defaults to os.getcwd().
+        path (str): Path to save all configs.
+                        Defaults to DEFAULT_PY4PHI_OUTPUT_PATH.
         encrypt_config (bool, optional): Whether to encrypt config itself.
                                             Defaults to True.
 
@@ -64,7 +64,7 @@ class ConfigProcessor:
 
     def read_config(
             self,
-            path: str = os.getcwd(),
+            path: str,
             config_encrypted: bool = True,
             encryption_key_name: str = DEFAULT_SECRET_NAME
     ) -> dict[str, dict]:
@@ -74,7 +74,7 @@ class ConfigProcessor:
         Args:
         ----
         path (str, optional): Path to save all configs.
-                                Defaults to os.getcwd().
+                                Defaults to DEFAULT_PY4PHI_OUTPUT_PATH.
         config_encrypted (bool, optional): Whether config is encrypted.
                                             Defaults to True.
         encryption_key_name (str, optional): Name of the file
