@@ -79,5 +79,7 @@ class _BaseEncryptor(ABC):
         Returns: None
 
         """
+        if column not in self._columns.keys():
+            raise ValueError(f"No column in encryptor columns dict, {column}")
         self._columns[column]['key'] = token_hex(16)
         self._columns[column]['aad'] = token_hex(16)
