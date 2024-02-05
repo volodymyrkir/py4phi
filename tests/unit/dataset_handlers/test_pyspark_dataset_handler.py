@@ -1,4 +1,4 @@
-"""Contains tests for the BaseReader class."""
+"""Contains tests for the PySparkDatasetHandler class."""
 import pytest
 
 from py4phi.dataset_handlers.pyspark_dataset_handler import PySparkDatasetHandler
