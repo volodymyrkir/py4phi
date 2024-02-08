@@ -26,4 +26,4 @@ jobs:
         ruff check --config ruff-test.toml tests/
     - name: Run tests
       run: |
-        pytest ./tests/
+        pytest ./tests/ --cov

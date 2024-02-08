@@ -1,4 +1,5 @@
 """Module containing main logic and entrypoint for library."""
+import shutil
 import os
 from typing import Optional
 
@@ -64,7 +65,9 @@ class Controller:
             else self.__encryptor
         )
         self._current_df, self.__columns_data = self.__encryptor.encrypt()
+        shutil.rmtree(save_location, ignore_errors=True)
         os.makedirs(save_location, exist_ok=True)
+
         self._config_processor.save_config(
             self.__columns_data,
             path=save_location,
