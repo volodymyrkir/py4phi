@@ -1,7 +1,8 @@
 """Test pyspark encryptor logic."""
 
 import pytest
-from pyspark.sql import functions as f, types as t
+from pyspark.sql import functions as f
+from pyspark.sql import types as t
 
 from py4phi._encryption._pyspark_encryptor import _PySparkEncryptor
 
