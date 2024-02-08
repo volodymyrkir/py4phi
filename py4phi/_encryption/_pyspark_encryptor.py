@@ -21,6 +21,8 @@ class _PySparkEncryptor(_BaseEncryptor):
         """
         if column not in self._df.columns:
             raise ValueError(f"No column named {column} found in file provided.")
+        if column not in self._columns:
+            raise ValueError(f"No column named {column} found in encryption dict.")
         self._get_and_save_salt(column)
         return (self._df
                 .withColumn(column,

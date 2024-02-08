@@ -2,3 +2,4 @@ Pipfile*
 .idea/
 *__pycache__/
 py4phi_outputs/
+.coverage
