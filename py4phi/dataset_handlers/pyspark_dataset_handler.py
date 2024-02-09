@@ -1,9 +1,10 @@
 """Module for reading file or dataframe of pyspark."""
 import os
+from typing import override
 
 from pyspark.sql import SparkSession, DataFrame, types as t
 
-from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler
+from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler, PathOrStr
 from py4phi.dataset_handlers.pyspark_write_utils import copy_merge_into
 
 TMP_OUTPUT_DIR = "tmp-spark"
@@ -20,7 +21,8 @@ class PySparkDatasetHandler(BaseDatasetHandler):
     def _to_pyspark(self, df: DataFrame) -> DataFrame:
         return df
 
-    def _read_csv(self, path: str, **kwargs) -> DataFrame:
+    @override
+    def _read_csv(self, path: PathOrStr, **kwargs) -> DataFrame:
         """
         Read csv file with PySpark.
 
@@ -36,7 +38,8 @@ class PySparkDatasetHandler(BaseDatasetHandler):
         """
         return self._spark.read.csv(path, header=kwargs['header'], multiLine=True)
 
-    def _read_parquet(self, path: str, **kwargs) -> DataFrame:
+    @override
+    def _read_parquet(self, path: PathOrStr, **kwargs) -> DataFrame:
         """
         Read parquet file with PySpark.
 
@@ -51,7 +54,8 @@ class PySparkDatasetHandler(BaseDatasetHandler):
         """
         return self._spark.read.parquet(path)
 
-    def _write_csv(self, df: DataFrame, name: str, path: str, **kwargs) -> None:
+    @override
+    def _write_csv(self, df: DataFrame, name: str, path: PathOrStr, **kwargs) -> None:
         """
         Write csv file with PySpark.
 
@@ -65,7 +69,7 @@ class PySparkDatasetHandler(BaseDatasetHandler):
         Returns: None.
 
         """
-        suffix = '.csv' if not path.endswith('.csv') else ''
+        suffix = '.csv' if not str(path).endswith('.csv') else ''
 
         headers = self._spark.createDataFrame(
             data=[[f.name for f in df.schema.fields]],
@@ -90,7 +94,14 @@ class PySparkDatasetHandler(BaseDatasetHandler):
             delete_source=True,
         )
 
-    def _write_parquet(self, df: DataFrame, name: str, path: str,  **kwargs) -> None:
+    @override
+    def _write_parquet(
+            self,
+            df: DataFrame,
+            name: str,
+            path: PathOrStr,
+            **kwargs
+    ) -> None:
         """
         Write parquet file.
 
@@ -104,7 +115,7 @@ class PySparkDatasetHandler(BaseDatasetHandler):
         Returns: None.
 
         """
-        suffix = '.parquet' if not path.endswith('.parquet') else ''
+        suffix = '.parquet' if not str(path).endswith('.parquet') else ''
         df.write.parquet(TMP_OUTPUT_DIR, **kwargs)
 
         copy_merge_into(

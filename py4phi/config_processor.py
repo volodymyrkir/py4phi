@@ -5,7 +5,7 @@ from secrets import token_bytes
 
 from configparser_crypt import ConfigParserCrypt
 
-DEFAULT_SECRET_NAME = 'secret.key'
+DEFAULT_SECRET_NAME = 'secret.key'  # TODO: CUSTOM CONFIGS
 DEFAULT_CONFIG_NAME = 'decrypt.conf'
 
 
@@ -21,13 +21,14 @@ class ConfigProcessor:
 
     @staticmethod
     def __read_key(path: str) -> bytes:
-        key = None
         try:
             with open(path, "rb") as key_file:
                 key = key_file.read()
+                return key
+        except IsADirectoryError:
+            raise IsADirectoryError(f'Provided path is a directory, not a file: {path}')
         except FileNotFoundError:
-            print(f'Secret not found under {path}')  # TODO LOGGING
-        return key
+            raise FileNotFoundError(f'Secret not found under: {path}')  # TODO LOGGING
 
     def save_config(
             self,

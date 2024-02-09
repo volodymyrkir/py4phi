@@ -1,20 +1,24 @@
 """Contains logic for _encryption and decryption."""
 from abc import ABC, abstractmethod
+from typing import TypeVar, Generic, Dict
 from secrets import token_hex
 
+DataFrame = TypeVar("DataFrame")
+type ColumnsDict = Dict[str, dict[str, None | str]]
 
-class _BaseEncryptor(ABC):
+
+class _BaseEncryptor(ABC, Generic[DataFrame]):
     """Encryptor class, includes _encryption and decryption logic."""
 
-    def __init__(self, df, columns: list[str]):
-        self._df = df
-        self._columns = {
+    def __init__(self, df: DataFrame, columns: list[str]):
+        self._df: DataFrame = df
+        self._columns: ColumnsDict = {
             column: dict.fromkeys(['key', 'aad'])
             for column in columns
         }
 
     @abstractmethod
-    def _encrypt_column(self, column: str):
+    def _encrypt_column(self, column: str) -> DataFrame:
         """
         Encrypt dataframe column.
 
@@ -27,7 +31,11 @@ class _BaseEncryptor(ABC):
         """
 
     @abstractmethod
-    def _decrypt_column(self, column: str, decryption_dict: dict[str, str]):
+    def _decrypt_column(
+            self,
+            column: str,
+            decryption_dict: dict[str, None | str]
+    ) -> DataFrame:
         """
         Decrypt dataframe column.
 
@@ -41,7 +49,7 @@ class _BaseEncryptor(ABC):
 
         """
 
-    def encrypt(self):
+    def encrypt(self) -> tuple[DataFrame, ColumnsDict]:
         """
         Encrypt each dataframe column.
 
@@ -52,7 +60,7 @@ class _BaseEncryptor(ABC):
             self._df = self._encrypt_column(column)
         return self._df, self._columns
 
-    def decrypt(self, decryption_dict: dict[str, dict]):
+    def decrypt(self, decryption_dict: ColumnsDict) -> DataFrame:
         """
         Encrypt each dataframe column.
 
