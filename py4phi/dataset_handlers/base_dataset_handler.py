@@ -1,6 +1,11 @@
 """Module that provides base class logic related to reading data."""
+from pathlib import Path
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Callable, TypeAlias, Union, Any
+
+PathOrStr = Union[Path, str]
+ReadingFunction: TypeAlias = Callable[[PathOrStr, Any, Any], Any]
+WritingFunction: TypeAlias = Callable[[Any, str, PathOrStr, Any, Any], None]
 
 
 class BaseDatasetHandler(ABC):
@@ -15,7 +20,20 @@ class BaseDatasetHandler(ABC):
         self._df = None
         self._writing_method = None
 
-    def _get_interaction_methods(self, file_type: str) -> tuple[callable, callable]:
+    def _get_interaction_methods(
+            self,
+            file_type: str
+    ) -> tuple[ReadingFunction, WritingFunction]:
+        """
+        Get interaction methods for particular file type.
+
+        Args:
+        ----
+            file_type(str): File type in str format.
+
+        Returns: A pair of reading function and writing function.
+
+        """
         methods = {
             'CSV': (self._read_csv, self._write_csv),
             'PARQUET': (self._read_parquet, self._write_parquet)
@@ -34,7 +52,7 @@ class BaseDatasetHandler(ABC):
         """
         return self._df
 
-    def read_dataframe(self, df) -> None:  # TODO multiple engines
+    def read_dataframe(self, df: Any) -> None:  # TODO multiple engines
         """
         Assign given dataframe object to the class field.
 
@@ -47,13 +65,13 @@ class BaseDatasetHandler(ABC):
         """
         self._df = self._to_pyspark(df)
 
-    def read_file(self, path: str, file_type: str, **kwargs) -> None:
+    def read_file(self, path: PathOrStr, file_type: str, **kwargs) -> None:
         """
         Read file by given path and type.
 
         Args:
         ----
-        path (str): Path to the file to be read.
+        path (PathOrStr): Path to the file to be read.
 
         file_type (str, optional): Type of the file to be read. Defaults to 'csv'.
 
@@ -69,13 +87,13 @@ class BaseDatasetHandler(ABC):
         self._writing_method = writing_method
 
     @abstractmethod
-    def _read_csv(self, path: str, *args, **kwargs) -> Any:
+    def _read_csv(self, path: PathOrStr, *args, **kwargs) -> Any:
         """
         Read csv file.
 
         Args:
         ----
-        path: path to csv file.
+        path (PathOrStr): path to csv file.
         args: Positional arguments supplied to the function.
         kwargs: Additional key-value arguments.
 
@@ -87,13 +105,13 @@ class BaseDatasetHandler(ABC):
         pass
 
     @abstractmethod
-    def _read_parquet(self, path: str, *args, **kwargs) -> Any:
+    def _read_parquet(self, path: PathOrStr, *args, **kwargs) -> Any:
         """
         Read parquet file.
 
         Args:
         ----
-        path: path to csv file.
+        path (PathOrStr): path to csv file.
         args: Positional arguments supplied to the function.
         kwargs: Additional key-value arguments.
 
@@ -104,7 +122,7 @@ class BaseDatasetHandler(ABC):
         """
         pass
 
-    def write(self, df: Any, name: str, path: str, **kwargs):
+    def write(self, df: Any, name: str, path: PathOrStr, **kwargs):
         """
         Write file.
 
@@ -122,7 +140,7 @@ class BaseDatasetHandler(ABC):
         writing_method(df, name, path, **kwargs)
 
     @abstractmethod
-    def _write_csv(self, df: Any, name: str, path: str, *args, **kwargs) -> None:
+    def _write_csv(self, df: Any, name: str, path: PathOrStr, *args, **kwargs) -> None:
         """
         Write csv file.
 
@@ -140,7 +158,14 @@ class BaseDatasetHandler(ABC):
         pass
 
     @abstractmethod
-    def _write_parquet(self, df: Any, name: str,  path: str, *args, **kwargs) -> None:
+    def _write_parquet(
+            self,
+            df: Any,
+            name: str,
+            path: PathOrStr,
+            *args,
+            **kwargs
+    ) -> None:
         """
         Write parquet file.
 
@@ -170,4 +195,3 @@ class BaseDatasetHandler(ABC):
 
         """
         pass
-
