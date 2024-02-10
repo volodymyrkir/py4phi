@@ -3,3 +3,4 @@ Pipfile*
 *__pycache__/
 py4phi_outputs/
 .coverage
+.mypy.ini
