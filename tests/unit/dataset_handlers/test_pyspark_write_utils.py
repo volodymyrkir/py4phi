@@ -1,11 +1,15 @@
 """Contains tests for the pyspark writing utility functions."""
 import os
 
-from py4j.java_gateway import JavaObject, JavaPackage
 import pytest
+from py4j.java_gateway import JavaObject, JavaPackage
 
 from py4phi.dataset_handlers.pyspark_write_utils import (
-    delete_location, copy_merge_into, configure_hadoop, get_files, ensure_exists
+    configure_hadoop,
+    copy_merge_into,
+    delete_location,
+    ensure_exists,
+    get_files,
 )
 
 
@@ -45,7 +49,15 @@ def test_copy_merge_into(spark_session, tmp_path_factory, delete_source):
     for file in ['file1.txt', 'file2.txt']:
         f = open(tmp_path / file, 'w')
         f.write('hello')
-    copy_merge_into(spark_session, str(tmp_path), str(tmp_path2 / 'res_file.csv'), delete_source)
-    exist_condition_met = not os.path.exists(tmp_path) if delete_source else os.path.exists(tmp_path)
+    copy_merge_into(
+        spark_session,
+        str(tmp_path),
+        str(tmp_path2 / 'res_file.csv'),
+        delete_source
+    )
+    exist_condition_met = (
+        not os.path.exists(tmp_path)
+        if delete_source else os.path.exists(tmp_path)
+    )
     assert exist_condition_met
     assert os.path.exists(str(tmp_path2 / 'res_file.csv'))
