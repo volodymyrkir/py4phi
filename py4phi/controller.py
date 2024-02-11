@@ -2,6 +2,7 @@
 import shutil
 import os
 from typing import Optional
+from logging import INFO
 
 from pyspark.sql import DataFrame
 
@@ -10,9 +11,11 @@ from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler
 from py4phi.dataset_handlers.pyspark_dataset_handler import PySparkDatasetHandler
 from py4phi._encryption._pyspark_encryptor import _PySparkEncryptor
 
+from py4phi.logger_setup import logger
+
 DEFAULT_PY4PHI_OUTPUT_PATH = os.path.join(os.getcwd(), 'py4phi_outputs')
 
-readers_mapping = {
+handlers_mapping = {
     DataFrame: PySparkDatasetHandler,
 
 }
@@ -35,6 +38,7 @@ class Controller:
         Returns: None
 
         """
+        logger.info('Printing active dataframe.')
         self._current_df.show()
 
     def encrypt_and_save(
@@ -64,21 +68,28 @@ class Controller:
             if not self.__encryptor
             else self.__encryptor
         )
+
+        logger.info(f'Kicking off encryption on current dataframe '
+                    f'for columns: {columns_to_encrypt}.')
         self._current_df, self.__columns_data = self.__encryptor.encrypt()
+
         shutil.rmtree(save_location, ignore_errors=True)
         os.makedirs(save_location, exist_ok=True)
+        logger.debug(f'Successfully prepared save location: {save_location}.')
 
         self._config_processor.save_config(
             self.__columns_data,
             path=save_location,
             encrypt_config=encrypt_config
         )
+        logger.debug(f'Saved config to: {save_location}.')
         self._dataset_handler.write(
             self._current_df,
             output_name,
             DEFAULT_PY4PHI_OUTPUT_PATH,
             **kwargs
         )
+        logger.info(f'Saved outputs to: {save_location}.')
 
     def decrypt(
             self,
@@ -106,17 +117,24 @@ class Controller:
             if not self.__encryptor
             else self.__encryptor
         )
+        logger.info(f'Kicking off decryption on current dataframe on columns: '
+                    f'{columns_to_decrypt}. '
+                    f'Config path is {configs_path}. '
+                    f'{'Config is encrypted' if config_encrypted else ''}')
         decryption_dict = self._config_processor.read_config(
             configs_path,
             config_encrypted=config_encrypted
         )
+
         self._current_df = self.__encryptor.decrypt(decryption_dict)
+        logger.info('Successfully decrypted current df.')
 
 
 def init_from_path(
         path: str,
         file_type: str,
-        header: Optional[bool] = False
+        header: Optional[bool] = False,
+        log_level: str | int = INFO
 ) -> Controller:
     """
     Initialize controller object via given path and file type to interact with data.
@@ -127,29 +145,39 @@ def init_from_path(
     file_type (str): File type for given file. Defaults to CSV.
     header (bool): Boolean flag indicating whether to use
         the first line of the file as a header. Defaults to True.
+    log_level (str|int): Logging level. Set to DEBUG for debugging.
+                     Defaults to INFO.
 
     Returns: Controller object.
     """
+    logger.setLevel(log_level)
+    logger.debug("Initializing Dataset Handler")
     reader = PySparkDatasetHandler()
-
+    logger.info(f"Reading dataframe using {type(reader)} "
+                f"from file: {path}, of type {file_type}.")
     reader.read_file(path=path, file_type=file_type, header=header)
     return Controller(reader)
 
 
-def init_from_dataframe(df):
+def init_from_dataframe(df, log_level: str | int = INFO) -> Controller:
     """
     Initialize controller object via given dataframe object.
 
     Args:
     ----
-        df: DataFrame to be read. Read docs to see available libraries.
+    df: DataFrame to be read. Read docs to see available libraries.
+    log_level (str|int): Logging level. Set to DEBUG for debugging.
+                         Defaults to INFO.
 
     Returns: Controller object.
 
     """
-    if type(df) not in readers_mapping.keys():
+    logger.setLevel(log_level)
+    if type(df) not in handlers_mapping.keys():
         raise ValueError(f'Unsupported object of type {type(df)}.')
-    reader = readers_mapping[type(df)]()
-    reader.read_dataframe(df)
+    handler = handlers_mapping[type(df)]()
+    logger.debug(f"Using {type(handler)} dataset handler")
+    logger.info(f"Reading dataframe of type {type(df)}.")
+    handler.read_dataframe(df)
 
-    return Controller(reader)
+    return Controller(handler)

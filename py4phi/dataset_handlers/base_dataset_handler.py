@@ -3,6 +3,8 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import Callable, TypeAlias, Union, Any
 
+from py4phi.logger_setup import logger
+
 PathOrStr = Union[Path, str]
 ReadingFunction: TypeAlias = Callable[[PathOrStr, Any, Any], Any]
 WritingFunction: TypeAlias = Callable[[Any, str, PathOrStr, Any, Any], None]
@@ -40,6 +42,8 @@ class BaseDatasetHandler(ABC):
         }.get(file_type.upper())
         if not methods:
             raise NotImplementedError(f'No reading method for file type {file_type}')
+        logger.debug(f'Reading method for file type - {methods[0].__name__},'
+                     f' writing method - {methods[1].__name__}.')
         return methods
 
     @property
@@ -83,6 +87,7 @@ class BaseDatasetHandler(ABC):
         reading_method, writing_method = self._get_interaction_methods(
             file_type=file_type
         )
+        logger.debug(f'Reading {path} file using {kwargs} keyword args.')
         self._df = reading_method(path, **kwargs)
         self._writing_method = writing_method
 
@@ -137,6 +142,9 @@ class BaseDatasetHandler(ABC):
 
         """
         writing_method = self._writing_method or self._write_csv
+        logger.debug(f'Writing dataframe to {path} '
+                     f'with name {name}, '
+                     f'using {kwargs} keyword args.')
         writing_method(df, name, path, **kwargs)
 
     @abstractmethod

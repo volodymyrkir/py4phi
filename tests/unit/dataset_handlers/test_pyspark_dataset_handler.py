@@ -35,9 +35,11 @@ def test_get_interaction_methods_raise(handler, file_type):
         handler._get_interaction_methods(file_type)
 
 
-def test_read_file(handler, mocker):
+def test_read_file(handler, mocker, mock_logger):
     df = mocker.MagicMock()
     mock_read_csv = mocker.MagicMock(return_value=df)
+    mock_read_csv.__name__ = '_read_csv'
+
     mocker.patch('py4phi.dataset_handlers.pyspark_dataset_handler.PySparkDatasetHandler._read_csv',
                  mock_read_csv)
 
@@ -58,6 +60,7 @@ def test_write_default(handler, mocker):
 ])
 def test_write_others(handler, mocker, file_type):
     write_method_mock = mocker.MagicMock()
+    write_method_mock.__name__ = f'_write_{file_type}'
     mocker.patch(f'py4phi.dataset_handlers.pyspark_dataset_handler.PySparkDatasetHandler._write_{file_type}',
                  write_method_mock)
     _, handler._writing_method = handler._get_interaction_methods(file_type)

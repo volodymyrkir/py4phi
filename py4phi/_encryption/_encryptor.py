@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, Dict
 from secrets import token_hex
 
+from py4phi.logger_setup import logger
+
 DataFrame = TypeVar("DataFrame")
 type ColumnsDict = Dict[str, dict[str, None | str]]
 
@@ -57,6 +59,7 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
 
         """
         for column in self._columns:
+            logger.info(f"Encrypting column: {column}.")
             self._df = self._encrypt_column(column)
         return self._df, self._columns
 
@@ -73,6 +76,7 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
 
         """
         for column in self._columns:
+            logger.info(f"Decrypting column: {column}.")
             self._df = self._decrypt_column(column, decryption_dict[column])
         return self._df
 
