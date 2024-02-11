@@ -59,7 +59,7 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
 
         """
         for column in self._columns:
-            logger.debug(f"Encrypting column: {column}")
+            logger.info(f"Encrypting column: {column}.")
             self._df = self._encrypt_column(column)
         return self._df, self._columns
 
@@ -75,8 +75,9 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
         Returns: Decrypted dataframe.
 
         """
+
         for column in self._columns:
-            logger.debug(f"Decrypting column: {column}")
+            logger.info(f"Decrypting column: {column}.")
             self._df = self._decrypt_column(column, decryption_dict[column])
         return self._df
 
