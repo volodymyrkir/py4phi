@@ -9,6 +9,9 @@ from py4phi.config_processor import (
     ConfigProcessor,
 )
 
+NAME_C = 'random_name.csv'
+NAME_K = 'random_key.csv'
+
 
 @pytest.fixture()
 def processor():
@@ -52,14 +55,33 @@ def test_save_config(processor, tmp_path):
     assert os.path.exists(os.path.join(tmp_path, DEFAULT_SECRET_NAME))
 
 
+def test_save_config_custom(processor, tmp_path):
+
+    columns_dict = {
+        'col1': {'key': 'val'},
+        'col2': {'aad': 'val'}
+    }
+    processor.save_config(
+        columns_dict, tmp_path, conf_file_name=NAME_C, key_file_name=NAME_K
+    )
+    assert os.path.exists(os.path.join(tmp_path, NAME_C))
+    assert os.path.exists(os.path.join(tmp_path, NAME_K))
+
+
 def test_save_config_not_encrypted(processor, tmp_path):
     columns_dict = {
         'col1': {'key': 'val'},
         'col2': {'aad': 'val'}
     }
-    processor.save_config(columns_dict, tmp_path, False)
-    assert os.path.exists(os.path.join(tmp_path, DEFAULT_CONFIG_NAME))
-    assert not os.path.exists(os.path.join(tmp_path, DEFAULT_SECRET_NAME))
+    processor.save_config(
+        columns_dict,
+        tmp_path,
+        encrypt_config=False,
+        conf_file_name=NAME_C,
+        key_file_name=NAME_K
+    )
+    assert os.path.exists(os.path.join(tmp_path, NAME_C))
+    assert not os.path.exists(os.path.join(tmp_path, NAME_K))
 
 
 @pytest.mark.parametrize('encrypt', [True, False])
@@ -68,7 +90,13 @@ def test_read_config(processor, tmp_path, encrypt):
         'col1': {'key': 'val'},
         'col2': {'aad': 'val'}
     }
-    processor.save_config(columns_dict, tmp_path, encrypt)
-    res = processor.read_config(tmp_path, encrypt)
+    processor.save_config(
+        columns_dict, tmp_path,
+        encrypt_config=encrypt, conf_file_name=NAME_C, key_file_name=NAME_K
+    )
+    res = processor.read_config(
+        tmp_path,
+        config_encrypted=encrypt, conf_file_name=NAME_C, key_file_name=NAME_K
+    )
     assert res == columns_dict
 

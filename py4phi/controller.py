@@ -12,8 +12,9 @@ from py4phi.dataset_handlers.pyspark_dataset_handler import PySparkDatasetHandle
 from py4phi._encryption._pyspark_encryptor import _PySparkEncryptor
 
 from py4phi.logger_setup import logger
-
-DEFAULT_PY4PHI_OUTPUT_PATH = os.path.join(os.getcwd(), 'py4phi_outputs')
+from py4phi.consts import (
+    DEFAULT_CONFIG_NAME, DEFAULT_SECRET_NAME, DEFAULT_PY4PHI_OUTPUT_PATH
+)
 
 handlers_mapping = {
     DataFrame: PySparkDatasetHandler,
@@ -46,7 +47,9 @@ class Controller:
             columns_to_encrypt: list[str],
             output_name: str = 'output_dataset',
             save_location: str = DEFAULT_PY4PHI_OUTPUT_PATH,
+            config_file_name: str = DEFAULT_CONFIG_NAME,
             encrypt_config: bool = True,
+            key_file_name: str = DEFAULT_SECRET_NAME,
             **kwargs
     ):
         """
@@ -56,8 +59,13 @@ class Controller:
         ----
         columns_to_encrypt (list[str]): List of columns to be encrypted.
         output_name (str): Name of te output file.
-        encrypt_config (bool, optional): Whether to encrypt config. Defaults to True.
+        encrypt_config (bool, optional): Whether to encrypt config.
+                                            Defaults to True.
         save_location (str, optional): Folder location to save all the outputs.
+        config_file_name (str, optional): Name of config to be saved.
+                                    Defaults to DEFAULT_CONFIG_NAME.
+        key_file_name (str, optional): Name of config to be saved.
+                                Defaults to DEFAULT_SECRET_NAME.
         kwargs (dict, optional): keyword arguments to be supplied to dataframe writing.
 
         Returns: Encrypted dataframe.
@@ -80,7 +88,9 @@ class Controller:
         self._config_processor.save_config(
             self.__columns_data,
             path=save_location,
-            encrypt_config=encrypt_config
+            conf_file_name=DEFAULT_CONFIG_NAME,
+            encrypt_config=encrypt_config,
+            key_file_name=DEFAULT_SECRET_NAME
         )
         logger.debug(f'Saved config to: {save_location}.')
         self._dataset_handler.write(
@@ -95,7 +105,9 @@ class Controller:
             self,
             columns_to_decrypt: list[str],
             configs_path: str = DEFAULT_PY4PHI_OUTPUT_PATH,
+            config_file_name: str = DEFAULT_CONFIG_NAME,
             config_encrypted: bool = True,
+            key_file_name: str = DEFAULT_SECRET_NAME
     ) -> None:
         """
         Decrypt specified columns in dataset.
@@ -106,7 +118,12 @@ class Controller:
         configs_path (str, optional): Path to the directory,
                                         containing the decryption configs.
                                         Defaults to current working directory.
-        config_encrypted (bool): Whether config is encrypted. Defaults to True.
+        config_encrypted (bool): Whether config is encrypted.
+                                    Defaults to True.
+        config_file_name (str): Name of config to be saved.
+                                    Defaults to DEFAULT_CONFIG_NAME.
+        key_file_name (str): Name of config to be saved.
+                                Defaults to DEFAULT_SECRET_NAME.
 
         Returns: Decrypted dataframe.
 
@@ -123,7 +140,9 @@ class Controller:
                     f'{'Config is encrypted' if config_encrypted else ''}')
         decryption_dict = self._config_processor.read_config(
             configs_path,
-            config_encrypted=config_encrypted
+            conf_file_name=config_file_name,
+            config_encrypted=config_encrypted,
+            key_file_name=key_file_name
         )
 
         self._current_df = self.__encryptor.decrypt(decryption_dict)
@@ -142,7 +161,8 @@ def init_from_path(
     Args:
     ----
     path (str): Path to file to be read.
-    file_type (str): File type for given file. Defaults to CSV.
+    file_type (str): File type for given file.
+                        Defaults to CSV.
     header (bool): Boolean flag indicating whether to use
         the first line of the file as a header. Defaults to True.
     log_level (str|int): Logging level. Set to DEBUG for debugging.
