@@ -6,9 +6,7 @@ from secrets import token_bytes
 from configparser_crypt import ConfigParserCrypt
 
 from py4phi.logger_setup import logger
-
-DEFAULT_SECRET_NAME = 'secret.key'  # TODO: CUSTOM CONFIGS
-DEFAULT_CONFIG_NAME = 'decrypt.conf'
+from py4phi.consts import DEFAULT_SECRET_NAME, DEFAULT_CONFIG_NAME
 
 
 class ConfigProcessor:
@@ -38,7 +36,9 @@ class ConfigProcessor:
             self,
             columns: dict[str, dict],
             path: str,
-            encrypt_config: bool = True
+            conf_file_name: str = DEFAULT_CONFIG_NAME,
+            encrypt_config: bool = True,
+            key_file_name: str = DEFAULT_SECRET_NAME
     ) -> None:
         """
         Save config file based on column encryption parameters.
@@ -48,6 +48,10 @@ class ConfigProcessor:
         columns (dict[str, dict]): Encryption details dict.
         path (str): Path to save all configs.
                         Defaults to DEFAULT_PY4PHI_OUTPUT_PATH.
+        conf_file_name (str): Name of config to be saved.
+                                Defaults to DEFAULT_CONFIG_NAME.
+        key_file_name (str): Name of config to be saved.
+                                Defaults to DEFAULT_SECRET_NAME.
         encrypt_config (bool, optional): Whether to encrypt config itself.
                                             Defaults to True.
 
@@ -60,19 +64,20 @@ class ConfigProcessor:
         logger.debug(f'Writing decryption config to {path}.'
                      f'{'Config will be encrypted' if encrypt_config else ''}')
         if encrypt_config:
-            key = self.__generate_key(os.path.join(path, DEFAULT_SECRET_NAME))
+            key = self.__generate_key(os.path.join(path, key_file_name))
             config.aes_key = key
-            with open(os.path.join(path, DEFAULT_CONFIG_NAME), "wb") as config_file:
+            with open(os.path.join(path, conf_file_name), "wb") as config_file:
                 config.write_encrypted(config_file)
         else:
-            with open(os.path.join(path, DEFAULT_CONFIG_NAME), "w") as config_file:
+            with open(os.path.join(path, conf_file_name), "w") as config_file:
                 config.write(config_file)
 
     def read_config(
             self,
             path: str,
+            conf_file_name: str = DEFAULT_CONFIG_NAME,
             config_encrypted: bool = True,
-            encryption_key_name: str = DEFAULT_SECRET_NAME
+            key_file_name: str = DEFAULT_SECRET_NAME
     ) -> dict[str, dict]:
         """
         Read config file.
@@ -83,8 +88,10 @@ class ConfigProcessor:
                                 Defaults to DEFAULT_PY4PHI_OUTPUT_PATH.
         config_encrypted (bool, optional): Whether config is encrypted.
                                             Defaults to True.
-        encryption_key_name (str, optional): Name of the file
-                                                with encryption key for config.
+        conf_file_name (str): Name of config to be saved.
+                                Defaults to DEFAULT_CONFIG_NAME.
+        key_file_name (str): Name of config to be saved.
+                                Defaults to DEFAULT_SECRET_NAME.
 
         Returns: None.
 
@@ -92,23 +99,15 @@ class ConfigProcessor:
         config = ConfigParserCrypt()
         logger.debug(f'Reading decryption config from {path}. '
                      f'{'Config is encrypted, key file name '
-                         + encryption_key_name if config_encrypted else ''}')
+                         + key_file_name if config_encrypted else ''}')
         if config_encrypted:
-            key = self.__read_key(os.path.join(path, encryption_key_name))
+            key = self.__read_key(os.path.join(path, key_file_name))
             config.aes_key = key
-            config.read_encrypted(os.path.join(path, DEFAULT_CONFIG_NAME))
+            config.read_encrypted(os.path.join(path, conf_file_name))
         else:
-            config.read(os.path.join(path, DEFAULT_CONFIG_NAME))
+            config.read(os.path.join(path, conf_file_name))
         return {
             column: dict(config.items(column))
             for column in config.sections()
             if column != DEFAULTSECT
         }
-
-
-
-
-
-
-
-
