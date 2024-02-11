@@ -7,7 +7,10 @@ from pyspark.sql import SparkSession, DataFrame, types as t
 from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler, PathOrStr
 from py4phi.dataset_handlers.pyspark_write_utils import copy_merge_into
 
+
 TMP_OUTPUT_DIR = "tmp-spark"
+
+
 # TODO ADD LOGGING, ADD CUSTOM EXCEPTIONS, ADD FILE FORMATS SUPPORT, ADD TESTS, ADD PERSONAL ALLOWED TYPES MAPPING # noqa: E501
 
 
@@ -16,7 +19,11 @@ class PySparkDatasetHandler(BaseDatasetHandler):
 
     def __init__(self):
         super().__init__()
-        self._spark = SparkSession.builder.getOrCreate()
+        self._spark = (
+            SparkSession.builder.appName('py4phi')
+            .config("spark.driver.extraJavaOptions",
+                    "-Dlog4j.configuration=log4j.properties").getOrCreate()
+        )
 
     def _to_pyspark(self, df: DataFrame) -> DataFrame:
         return df

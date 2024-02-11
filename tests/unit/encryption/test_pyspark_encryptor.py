@@ -68,3 +68,9 @@ def test_decrypt_column(encryptor, raw_df, expected_df):
     decrypted_df = encryptor._decrypt_column('col1', encryptor._columns['col1'])
 
     assert decrypted_df.select('col1').collect() == expected_df.select('col1').collect()
+
+
+@pytest.mark.parametrize('column', [None, 123, 'col2'])
+def test_decrypt_column_wrong(encryptor, column, mocker):
+    with pytest.raises(ValueError):
+        encryptor._decrypt_column(column, mocker.MagicMock())

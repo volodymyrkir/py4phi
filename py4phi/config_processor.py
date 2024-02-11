@@ -5,6 +5,8 @@ from secrets import token_bytes
 
 from configparser_crypt import ConfigParserCrypt
 
+from py4phi.logger_setup import logger
+
 DEFAULT_SECRET_NAME = 'secret.key'  # TODO: CUSTOM CONFIGS
 DEFAULT_CONFIG_NAME = 'decrypt.conf'
 
@@ -14,6 +16,7 @@ class ConfigProcessor:
 
     @staticmethod
     def __generate_key(path_to_save: str) -> bytes:
+        logger.debug(f"Generating secret under {path_to_save}.")
         key = token_bytes(32)
         with open(path_to_save, "wb") as key_file:
             key_file.write(key)
@@ -22,13 +25,14 @@ class ConfigProcessor:
     @staticmethod
     def __read_key(path: str) -> bytes:
         try:
+            logger.debug(f"Reading secret key under {path}.")
             with open(path, "rb") as key_file:
                 key = key_file.read()
                 return key
         except IsADirectoryError:
             raise IsADirectoryError(f'Provided path is a directory, not a file: {path}')
         except FileNotFoundError:
-            raise FileNotFoundError(f'Secret not found under: {path}')  # TODO LOGGING
+            raise FileNotFoundError(f'Secret not found under: {path}')
 
     def save_config(
             self,
@@ -53,7 +57,8 @@ class ConfigProcessor:
         config = ConfigParserCrypt()
         for column_name, params_dict in columns.items():
             config[column_name] = params_dict
-
+        logger.debug(f'Writing decryption config to {path}.'
+                     f'{'Config will be encrypted' if encrypt_config else ''}')
         if encrypt_config:
             key = self.__generate_key(os.path.join(path, DEFAULT_SECRET_NAME))
             config.aes_key = key
@@ -85,6 +90,9 @@ class ConfigProcessor:
 
         """
         config = ConfigParserCrypt()
+        logger.debug(f'Reading decryption config from {path}. '
+                     f'{'Config is encrypted, key file name '
+                         + encryption_key_name if config_encrypted else ''}')
         if config_encrypted:
             key = self.__read_key(os.path.join(path, encryption_key_name))
             config.aes_key = key
