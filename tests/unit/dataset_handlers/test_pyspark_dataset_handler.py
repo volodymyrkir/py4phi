@@ -1,5 +1,6 @@
 """Contains tests for the PySparkDatasetHandler class."""
 import pytest
+from pyspark.sql import DataFrame
 
 from py4phi.dataset_handlers.pyspark_dataset_handler import PySparkDatasetHandler
 
@@ -68,5 +69,15 @@ def test_write_others(handler, mocker, file_type):
     write_method_mock.assert_called_once_with('df', 'name', 'path', param1='param1')
 
 
+def test_print(handler, mocker):
+    df = mocker.MagicMock(spec=DataFrame)
+    show_mock = mocker.MagicMock()
+    df.show = show_mock
+    handler.print_df(df)
+    show_mock.assert_called_once()
 
 
+def test_print_raise(handler, mocker):
+    df = mocker.MagicMock()
+    with pytest.raises(ValueError):
+        handler.print_df(df)

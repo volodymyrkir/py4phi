@@ -1,6 +1,6 @@
 Pipfile*
 .idea/
 *__pycache__/
-py4phi_outputs/
+*py4phi*outputs/
 .coverage
 .mypy.ini
