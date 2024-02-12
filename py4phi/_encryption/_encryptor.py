@@ -1,11 +1,11 @@
 """Contains logic for _encryption and decryption."""
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Dict
+from typing import Generic, Dict
 from secrets import token_hex
 
 from py4phi.logger_setup import logger
+from py4phi.utils import DataFrame
 
-DataFrame = TypeVar("DataFrame")
 type ColumnsDict = Dict[str, dict[str, None | str]]
 
 

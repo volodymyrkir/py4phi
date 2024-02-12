@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, TypeAlias, Union, Any
 
 from py4phi.logger_setup import logger
+from py4phi.utils import DataFrame
 
 PathOrStr = Union[Path, str]
 ReadingFunction: TypeAlias = Callable[[PathOrStr, Any, Any], Any]
@@ -19,7 +20,7 @@ class BaseDatasetHandler(ABC):
     """
 
     def __init__(self):
-        self._df = None
+        self._df: DataFrame = None
         self._writing_method = None
 
     def _get_interaction_methods(
@@ -51,23 +52,23 @@ class BaseDatasetHandler(ABC):
         """
         Return dataframe of the reader.
 
-        Returns: dataframe of the reader.
+        Returns: dataframe of the handler.
 
         """
         return self._df
 
-    def read_dataframe(self, df: Any) -> None:  # TODO multiple engines
+    def read_dataframe(self, df: DataFrame) -> None:
         """
         Assign given dataframe object to the class field.
 
         Args:
         ----
-        df (Any): Dataframe object.
+        df (DataFrame): Dataframe object.
 
         Returns: None
 
         """
-        self._df = self._to_pyspark(df)
+        self._df = df
 
     def read_file(self, path: PathOrStr, file_type: str, **kwargs) -> None:
         """
@@ -92,7 +93,7 @@ class BaseDatasetHandler(ABC):
         self._writing_method = writing_method
 
     @abstractmethod
-    def _read_csv(self, path: PathOrStr, *args, **kwargs) -> Any:
+    def _read_csv(self, path: PathOrStr, *args, **kwargs) -> DataFrame:
         """
         Read csv file.
 
@@ -110,7 +111,7 @@ class BaseDatasetHandler(ABC):
         pass
 
     @abstractmethod
-    def _read_parquet(self, path: PathOrStr, *args, **kwargs) -> Any:
+    def _read_parquet(self, path: PathOrStr, *args, **kwargs) -> DataFrame:
         """
         Read parquet file.
 
@@ -127,7 +128,7 @@ class BaseDatasetHandler(ABC):
         """
         pass
 
-    def write(self, df: Any, name: str, path: PathOrStr, **kwargs):
+    def write(self, df: Any, name: str, path: PathOrStr, **kwargs) -> None:
         """
         Write file.
 
@@ -148,7 +149,14 @@ class BaseDatasetHandler(ABC):
         writing_method(df, name, path, **kwargs)
 
     @abstractmethod
-    def _write_csv(self, df: Any, name: str, path: PathOrStr, *args, **kwargs) -> None:
+    def _write_csv(
+            self,
+            df: DataFrame,
+            name: str,
+            path: PathOrStr,
+            *args,
+            **kwargs
+    ) -> None:
         """
         Write csv file.
 
@@ -168,7 +176,7 @@ class BaseDatasetHandler(ABC):
     @abstractmethod
     def _write_parquet(
             self,
-            df: Any,
+            df: DataFrame,
             name: str,
             path: PathOrStr,
             *args,
@@ -190,16 +198,17 @@ class BaseDatasetHandler(ABC):
         """
         pass
 
+    @staticmethod
     @abstractmethod
-    def _to_pyspark(self, df):
+    def print_df(df: DataFrame) -> None:
         """
-        Convert the dataframe to PySpark.
+        Print dataframe.
 
         Args:
         ----
-        df: DataFrame to be converted to PySpark.
+        df (DataFrame): DataFrame.
 
-        Returns: Spark DataFrame
+        Returns: None.
 
         """
         pass

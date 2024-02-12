@@ -6,10 +6,7 @@ from pyspark.sql import SparkSession, DataFrame, types as t
 
 from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler, PathOrStr
 from py4phi.dataset_handlers.pyspark_write_utils import copy_merge_into
-
-
-TMP_OUTPUT_DIR = "tmp-spark"
-
+from py4phi.consts import TMP_OUTPUT_DIR
 
 # TODO ADD LOGGING, ADD CUSTOM EXCEPTIONS, ADD FILE FORMATS SUPPORT, ADD TESTS, ADD PERSONAL ALLOWED TYPES MAPPING # noqa: E501
 
@@ -25,8 +22,22 @@ class PySparkDatasetHandler(BaseDatasetHandler):
                     "-Dlog4j.configuration=log4j.properties").getOrCreate()
         )
 
-    def _to_pyspark(self, df: DataFrame) -> DataFrame:
-        return df
+    @staticmethod
+    @override
+    def print_df(df: DataFrame) -> None:
+        """
+        Print PySpark dataframe.
+
+        Args:
+        ----
+        df (DataFrame): PySpark dataframe.
+
+        Returns: None.
+
+        """
+        if not isinstance(df, DataFrame):
+            raise ValueError('Non-PySpark DataFrame passed to PySparkDatasetHandler')
+        df.show()
 
     @override
     def _read_csv(self, path: PathOrStr, **kwargs) -> DataFrame:
