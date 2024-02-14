@@ -1,13 +1,14 @@
 """Module containing main logic and entrypoint for library."""
 import shutil
 import os
-from typing import Optional
 from logging import INFO
 
+import pandas as pd
 from pyspark.sql import DataFrame
 
 from py4phi.config_processor import ConfigProcessor
 from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler
+from py4phi.dataset_handlers.pandas_dataset_handler import PandasDatasetHandler
 from py4phi.dataset_handlers.pyspark_dataset_handler import PySparkDatasetHandler
 from py4phi._encryption._pyspark_encryptor import _PySparkEncryptor
 
@@ -21,9 +22,14 @@ from py4phi.consts import (
 class Controller:
     """Class to interact with py4phi components."""
 
-    HANDLERS_MAPPING = {
+    HANDLERS_TYPE_MAPPING = {
         DataFrame: PySparkDatasetHandler,
+        pd.DataFrame: PandasDatasetHandler,
+    }
 
+    ENGINE_NAME_MAPPING = {
+        'pyspark': PySparkDatasetHandler,
+        'pandas': PandasDatasetHandler,
     }
 
     def __init__(self, dataset_handler: BaseDatasetHandler):
@@ -215,8 +221,9 @@ class Controller:
 def from_path(
         path: str,
         file_type: str,
-        header: Optional[bool] = False,
-        log_level: str | int = INFO
+        engine: str = 'pyspark',
+        log_level: str | int = INFO,
+        **kwargs
 ) -> Controller:
     """
     Initialize controller object via given path and file type to interact with data.
@@ -226,21 +233,28 @@ def from_path(
     path (str): Path to file to be read.
     file_type (str): File type for given file.
                         Defaults to CSV.
+    engine (str, optional): Engine to use. Can be 'pandas', 'pyspark', TBD.
+                                Defaults to 'pyspark'.
     header (bool): Boolean flag indicating whether to use
         the first line of the file as a header. Defaults to True.
     log_level (str|int): Logging level. Set to DEBUG for debugging.
                      Defaults to INFO.
+    kwargs (dict): Optional keyword arguments to pass to reading method.
 
     Returns: Controller object.
     """
     logger.setLevel(log_level)
 
     logger.debug("Initializing Dataset Handler")
-    reader = PySparkDatasetHandler()
+    reader_cls = Controller.ENGINE_NAME_MAPPING.get(engine)
+    if not reader_cls:
+        raise KeyError(f"No such engine: {engine},"
+                       f" could be one of {tuple(Controller.ENGINE_NAME_MAPPING)}")
+    reader = reader_cls()
     logger.info(f"Reading dataframe using {type(reader)} "
                 f"from file: {path}, of type {file_type}.")
 
-    reader.read_file(path=path, file_type=file_type, header=header)
+    reader.read_file(path=path, file_type=file_type, **kwargs)
 
     return Controller(reader)
 
@@ -260,9 +274,9 @@ def from_dataframe(df, log_level: str | int = INFO) -> Controller:
     """
     logger.setLevel(log_level)
 
-    if type(df) not in Controller.HANDLERS_MAPPING.keys():
+    if type(df) not in Controller.HANDLERS_TYPE_MAPPING.keys():
         raise ValueError(f'Unsupported object of type {type(df)}.')
-    handler = Controller.HANDLERS_MAPPING[type(df)]()
+    handler = Controller.HANDLERS_TYPE_MAPPING[type(df)]()
 
     logger.debug(f"Using {type(handler)} dataset handler")
     logger.info(f"Reading dataframe of type {type(df)}.")

@@ -1,4 +1,4 @@
-"""Module for reading file or dataframe of pyspark."""
+"""Module for reading file or dataframe by PySpark."""
 import os
 from typing import override
 
@@ -51,10 +51,10 @@ class PySparkDatasetHandler(BaseDatasetHandler):
 
         Returns:
         -------
-            None: Assigns dataframe to self._df property of the reader object.
+            None: Assigns dataframe to self._df property of the handler object.
 
         """
-        return self._spark.read.csv(path, header=kwargs['header'], multiLine=True)
+        return self._spark.read.csv(path, multiLine=True, **kwargs)
 
     @override
     def _read_parquet(self, path: PathOrStr, **kwargs) -> DataFrame:
@@ -68,9 +68,9 @@ class PySparkDatasetHandler(BaseDatasetHandler):
 
         Returns:
         -------
-            None: Assigns dataframe to self._df property of the reader object.
+            None: Assigns dataframe to self._df property of the handler object.
         """
-        return self._spark.read.parquet(path)
+        return self._spark.read.parquet(path, **kwargs)
 
     @override
     def _write_csv(self, df: DataFrame, name: str, path: PathOrStr, **kwargs) -> None:
