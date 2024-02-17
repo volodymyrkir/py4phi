@@ -8,7 +8,9 @@ import pandas as pd
 from pyspark.sql import DataFrame
 
 from py4phi.config_processor import ConfigProcessor
-from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler
+from py4phi.dataset_handlers.base_dataset_handler import (
+    BaseDatasetHandler, DataFrame as BaseDF
+)
 from py4phi.dataset_handlers.pandas_dataset_handler import PandasDatasetHandler
 from py4phi.dataset_handlers.pyspark_dataset_handler import PySparkDatasetHandler
 from py4phi._encryption._pyspark_encryptor import _PySparkEncryptor
@@ -46,7 +48,7 @@ class Controller:
         self._encrypted: bool = False
         self._decrypted: bool = False
         self.__columns_data = None
-        self._current_df = self._dataset_handler.df
+        self._current_df: BaseDF = self._dataset_handler.df
         self._config_processor = ConfigProcessor()
 
     def print_current_df(self) -> None:
@@ -62,7 +64,7 @@ class Controller:
     def encrypt(
             self,
             columns_to_encrypt: list[str],
-    ) -> None:
+    ) -> BaseDF:
         """
         Encrypt specified columns in dataset.
 
@@ -84,6 +86,7 @@ class Controller:
         self._current_df, self.__columns_data = self.__encryptor.encrypt()
         self._encrypted = True
         logger.info('Successfully encrypted dataframe.')
+        return self._current_df
 
     def save_encrypted(
             self,
@@ -184,7 +187,7 @@ class Controller:
             config_file_name: str = DEFAULT_CONFIG_NAME,
             config_encrypted: bool = True,
             key_file_name: str = DEFAULT_SECRET_NAME
-    ) -> None:
+    ) -> BaseDF:
         """
         Decrypt specified columns in dataset.
 
@@ -209,29 +212,31 @@ class Controller:
             if not self.__encryptor
             else self.__encryptor
         )
-        logger.info(f'Kicking off decryption on current dataframe on columns: ' # TODO decrypt without saving on encryption # noqa: E501
-                    f'{columns_to_decrypt}. '
-                    f'Config path is {configs_path}. '
-                    f'{'Config is encrypted' if config_encrypted else ''}')
-        try:
-            decryption_dict = self._config_processor.read_config(
-                configs_path,
-                conf_file_name=config_file_name,
-                config_encrypted=config_encrypted,
-                key_file_name=key_file_name
-            )
-        except FileNotFoundError:
-            raise FileNotFoundError(
-                "Decryption config file not found. "
-                "If you are trying to decrypt dataframe before "
-                "saving an encrypted dataframe, "
-                "please save it before trying to decrypt."
-            )
-
+        if self.__columns_data:
+            decryption_dict = self.__columns_data
+            logger.debug("Decrypting previously encrypted dataframe, "
+                         "ignoring provided configs paths...")
+        else:
+            logger.info(f'Kicking off decryption on current dataframe on columns: '
+                        f'{columns_to_decrypt}. '
+                        f'Config path is {configs_path}. '
+                        f'{'Config is encrypted' if config_encrypted else ''}')
+            try:
+                decryption_dict = self._config_processor.read_config(
+                    configs_path,
+                    conf_file_name=config_file_name,
+                    config_encrypted=config_encrypted,
+                    key_file_name=key_file_name
+                )
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    f"Decryption config files not found under {configs_path}. "
+                )
 
         self._current_df = self.__encryptor.decrypt(decryption_dict)
         self._decrypted = True
         logger.info('Successfully decrypted current df.')
+        return self._decrypted
 
 
 def from_path(
