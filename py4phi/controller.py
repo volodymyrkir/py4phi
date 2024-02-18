@@ -5,14 +5,17 @@ from logging import INFO
 from typing import Type
 
 import pandas as pd
+import polars as pl
 from pyspark.sql import DataFrame
 
+from py4phi._encryption._polars_encryptor import _PolarsEncryptor
 from py4phi.config_processor import ConfigProcessor
 from py4phi.dataset_handlers.base_dataset_handler import (
     BaseDatasetHandler, DataFrame as BaseDF
 )
 from py4phi.dataset_handlers.pandas_dataset_handler import PandasDatasetHandler
 from py4phi.dataset_handlers.pyspark_dataset_handler import PySparkDatasetHandler
+from py4phi.dataset_handlers.polars_dataset_handler import PolarsDatasetHandler
 from py4phi._encryption._pyspark_encryptor import _PySparkEncryptor
 from py4phi._encryption._pandas_encryptor import _PandasEncryptor, _BaseEncryptor
 
@@ -22,6 +25,8 @@ from py4phi.consts import (
     DEFAULT_PY4PHI_ENCRYPTED_PATH, DEFAULT_PY4PHI_DECRYPTED_PATH
 )
 
+__all__ = ['from_path', 'from_dataframe']
+
 
 class Controller:
     """Class to interact with py4phi components."""
@@ -29,16 +34,19 @@ class Controller:
     HANDLERS_TYPE_MAPPING = {
         DataFrame: PySparkDatasetHandler,
         pd.DataFrame: PandasDatasetHandler,
+        pl.DataFrame: PolarsDatasetHandler
     }
 
     ENGINE_NAME_MAPPING = {
         'pyspark': PySparkDatasetHandler,
         'pandas': PandasDatasetHandler,
+        'polars': PolarsDatasetHandler
     }
 
     ENCRYPTION_MAPPING: dict[Type[BaseDatasetHandler], Type[_BaseEncryptor]] = {
         PySparkDatasetHandler: _PySparkEncryptor,
-        PandasDatasetHandler: _PandasEncryptor
+        PandasDatasetHandler: _PandasEncryptor,
+        PolarsDatasetHandler: _PolarsEncryptor,
     }
 
     def __init__(self, dataset_handler: BaseDatasetHandler):

@@ -7,3 +7,4 @@ configparser-crypt==1.1.0
 pycryptodome==3.20.0
 pandas==2.2.0
 pyarrow==15.0.0
+polars==0.20.9

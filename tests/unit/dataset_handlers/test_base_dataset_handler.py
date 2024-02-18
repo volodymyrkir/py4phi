@@ -29,7 +29,7 @@ def test_get_interaction_methods_correct(handler, file_type, funcs):
 
 
 @pytest.mark.parametrize('file_type', [
-   'json', 'orc', 'enigma', 'iceberg'
+    'json', 'orc', 'enigma', 'iceberg'
 ])
 def test_get_interaction_methods_raise(handler, file_type):
     with pytest.raises(NotImplementedError):
@@ -50,10 +50,17 @@ def test_read_file(handler, mocker, mock_logger):
 
 def test_write_default(handler, mocker):
     write_method_mock = mocker.MagicMock()
+    write_method_mock.__name__ = ''
     mocker.patch('py4phi.dataset_handlers.base_dataset_handler.BaseDatasetHandler._write_csv',
                  write_method_mock)
-    handler.write('df', 'name', 'path', param1='param1')
+    handler.write('df', 'name', 'path', param1='param1', save_format=None)
     write_method_mock.assert_called_once_with('df', 'name', 'path', param1='param1')
+
+
+def test_write_wrong(handler):
+    with pytest.raises(NotImplementedError):
+        handler.write('df', 'name', 'path',
+                      param1='param1', save_format='SOMEFILEFORMAT')
 
 
 @pytest.mark.parametrize('file_type', [
@@ -65,5 +72,5 @@ def test_write_others(handler, mocker, file_type):
     mocker.patch(f'py4phi.dataset_handlers.base_dataset_handler.BaseDatasetHandler._write_{file_type}',
                  write_method_mock)
     _, handler._writing_method = handler._get_interaction_methods(file_type)
-    handler.write('df', 'name', 'path', param1='param1')
+    handler.write('df', 'name', 'path', param1='param1', save_format=None)
     write_method_mock.assert_called_once_with('df', 'name', 'path', param1='param1')

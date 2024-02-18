@@ -2,6 +2,10 @@
 from abc import ABC, abstractmethod
 from typing import Generic, Dict
 from secrets import token_hex
+from base64 import b64encode, b64decode
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
 
 from py4phi.logger_setup import logger
 from py4phi.utils import DataFrame
@@ -18,6 +22,49 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
             column: dict.fromkeys(['key', 'aad'])
             for column in columns
         }
+
+    @staticmethod
+    def _encrypt_string(data: str, key: bytes, aad: bytes) -> str:
+        """
+        Encrypts a string using AES encryption with a given key and AAD.
+
+        Args:
+        ----
+        data (str): The string to encrypt.
+        key (bytes): The 16-byte encryption key.
+        aad (bytes): The AAD (Additional Authenticated Data).
+
+        Returns: (str) The encrypted data.
+        """
+        cipher = AES.new(key, AES.MODE_GCM, nonce=aad)
+        ciphertext, tag = cipher.encrypt_and_digest(pad(data.encode(), AES.block_size))
+        return b64encode(cipher.nonce + tag + ciphertext).decode()
+
+    @staticmethod
+    def _decrypt_string(data: bytes, key: bytes, aad: bytes) -> str:
+        """
+        Decrypts an encrypted string using AES decryption with a given key and AAD.
+
+        Args:
+        ----
+        data (bytes): The encrypted data.
+        key (bytes): The 16-byte encryption key.
+        aad (bytes): The AAD (Additional Authenticated Data).
+
+        Returns: (str) The decrypted string.
+        """
+        data = b64decode(data)
+        tag = data[16:32]
+        ciphertext = data[32:]
+
+        cipher = AES.new(key, AES.MODE_GCM, nonce=aad)
+        decrypted_data = unpad(
+            cipher.decrypt_and_verify(ciphertext, tag),
+            AES.block_size
+        )
+
+        return decrypted_data.decode()
+
 
     @abstractmethod
     def _encrypt_column(self, column: str) -> DataFrame:

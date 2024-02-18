@@ -1,16 +1,16 @@
-"""Contains logic for _encryption and decryption."""
+"""Contains logic for encryption and decryption using Polars."""
 from typing import override
 
-import pandas as pd
+import polars as pl
 
 from py4phi._encryption._encryptor import _BaseEncryptor
 
 
-class _PandasEncryptor(_BaseEncryptor):
+class _PolarsEncryptor(_BaseEncryptor):
     """Encryptor class, includes _encryption and decryption logic."""
 
     @override
-    def _encrypt_column(self, column: str) -> pd.DataFrame:
+    def _encrypt_column(self, column: str) -> pl.DataFrame:
         """
         Encrypt dataframe column.
 
@@ -18,7 +18,7 @@ class _PandasEncryptor(_BaseEncryptor):
         ----
             column (str): The column to be encrypted.
 
-        Returns: Pandas DataFrame with encrypted column.
+        Returns: Polars DataFrame with encrypted column.
 
         """
         if column not in self._df.columns:
@@ -29,17 +29,20 @@ class _PandasEncryptor(_BaseEncryptor):
         key = bytes.fromhex(self._columns[column]['key'])
         aad = bytes.fromhex(self._columns[column]['aad'])
 
-        self._df[column] = self._df[column].apply(
-            lambda x: self._encrypt_string(str(x), key, aad)
+        return self._df.with_columns(
+            [
+                pl.col(column).map_elements(
+                    lambda x: self._encrypt_string(str(x), key, aad)
+                ).alias(column)
+            ]
         )
-        return self._df
 
     @override
     def _decrypt_column(
             self,
             column: str,
             decryption_dict: dict[str, None | str]
-    ) -> pd.DataFrame:
+    ) -> pl.DataFrame:
         """
         Decrypt dataframe column.
 
@@ -58,8 +61,11 @@ class _PandasEncryptor(_BaseEncryptor):
         key = bytes.fromhex(self._columns[column]['key'])
         aad = bytes.fromhex(self._columns[column]['aad'])
 
-        self._df[column] = self._df[column].apply(
-            lambda x: self._decrypt_string(x, key, aad)
+        return self._df.with_columns(
+            [
+                pl.col(column).map_elements(
+                    lambda x: self._decrypt_string(x, key, aad)
+                ).alias(column)
+            ]
         )
-        return self._df
 

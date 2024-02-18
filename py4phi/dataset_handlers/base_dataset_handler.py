@@ -25,27 +25,29 @@ class BaseDatasetHandler(ABC):
 
     def _get_interaction_methods(
             self,
-            file_type: str
+            file_type: str | None,
     ) -> tuple[ReadingFunction, WritingFunction]:
         """
         Get interaction methods for particular file type.
 
         Args:
         ----
-            file_type(str): File type in str format.
+            file_type(str, optional): File type in str format.
 
         Returns: A pair of reading function and writing function.
 
         """
-        methods = {
-            'CSV': (self._read_csv, self._write_csv),
-            'PARQUET': (self._read_parquet, self._write_parquet)
-        }.get(file_type.upper())
-        if not methods:
-            raise NotImplementedError(f'No reading method for file type {file_type}')
-        logger.debug(f'Reading method for file type - {methods[0].__name__},'
-                     f' writing method - {methods[1].__name__}.')
-        return methods
+        if file_type:
+            methods = {
+                'CSV': (self._read_csv, self._write_csv),
+                'PARQUET': (self._read_parquet, self._write_parquet)
+            }.get(file_type.upper())
+            if not methods:
+                raise NotImplementedError(f'No reading/writing method '
+                                          f'for file type {file_type}')
+            logger.debug(f'Reading method for file type - {methods[0].__name__},'
+                         f' writing method - {methods[1].__name__}.')
+            return methods
 
     @property
     def df(self):
@@ -128,7 +130,14 @@ class BaseDatasetHandler(ABC):
         """
         pass
 
-    def write(self, df: Any, name: str, path: PathOrStr, **kwargs) -> None:
+    def write(
+            self,
+            df: Any,
+            name: str,
+            path: PathOrStr,
+            save_format: str | None = None,
+            **kwargs
+    ) -> None:
         """
         Write file.
 
@@ -137,12 +146,16 @@ class BaseDatasetHandler(ABC):
         df (Any): Dataframe to be saved.
         name (str): Name of the resulting file.
         path (str): path to save csv file.
+        save_format (str, optional): Writing format. Defaults to None.
         kwargs: Additional key-value arguments.
 
         Returns: None.
 
         """
-        writing_method = self._writing_method or self._write_csv
+        writing_method = (
+                [*self._get_interaction_methods(save_format)][1]
+                if save_format else self._writing_method or self._write_csv
+        )
         logger.debug(f'Writing dataframe to {path} '
                      f'with name {name}, '
                      f'using {kwargs} keyword args.')
