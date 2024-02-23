@@ -29,7 +29,7 @@ def encryptor_polars(mocker):
     return encryptor
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def encrypted_df():
     values = [
         '4gurXIbvH59CtthU85aJWK8VMbGm7xp9/V5cOst3PtZY5YPTBtXU5lTjPRsmgAG3Iev+2TI3r6PQcj5ca0Y+6Q==',
@@ -39,7 +39,7 @@ def encrypted_df():
     return pd.DataFrame.from_dict({'col1': values})
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def decrypted_df():
     values = [
         'Commissioned Corps (excepted)',
@@ -58,7 +58,7 @@ def test_encrypt_column_wrong(column, specific_encryptor, request):
 
 
 def test_encrypt_column_pandas(encryptor_pandas, decrypted_df, encrypted_df, mocker):
-    encryptor_pandas._df = decrypted_df.copy()
+    encryptor_pandas._df = decrypted_df
     mocker.patch.object(encryptor_pandas, '_get_and_save_salt', mocker.MagicMock())
     actual_df = encryptor_pandas._encrypt_column('col1')
     pd.testing.assert_frame_equal(actual_df, encrypted_df)
@@ -73,16 +73,18 @@ def test_encrypt_column_polars(encryptor_polars, decrypted_df, encrypted_df, moc
 
 
 def test_decrypt_column(encryptor_pandas, decrypted_df, encrypted_df, mocker):
-    encryptor_pandas._df = encrypted_df.copy()
+    encryptor_pandas._df = encrypted_df
     mocker.patch.object(encryptor_pandas, '_get_and_save_salt', mocker.MagicMock())
-    actual_df = encryptor_pandas._decrypt_column('col1', encryptor_pandas._columns)
+    actual_df = encryptor_pandas._decrypt_column('col1',
+                                                 encryptor_pandas._columns['col1'])
     pd.testing.assert_frame_equal(actual_df, decrypted_df)
 
 
 def test_decrypt_column_polars(encryptor_polars, decrypted_df, encrypted_df, mocker):
     encryptor_polars._df = pl.from_pandas(encrypted_df)
     mocker.patch.object(encryptor_polars, '_get_and_save_salt', mocker.MagicMock())
-    actual_df = encryptor_polars._decrypt_column('col1', encryptor_polars._columns)
+    actual_df = encryptor_polars._decrypt_column('col1',
+                                                 encryptor_polars._columns['col1'])
     pl.from_pandas(decrypted_df).frame_equal(actual_df)
 
 

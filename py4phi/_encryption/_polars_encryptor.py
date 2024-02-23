@@ -58,8 +58,8 @@ class _PolarsEncryptor(_BaseEncryptor):
         if column not in self._df.columns:
             raise ValueError(f"No column named {column} found in file provided.")
 
-        key = bytes.fromhex(self._columns[column]['key'])
-        aad = bytes.fromhex(self._columns[column]['aad'])
+        key = bytes.fromhex(decryption_dict['key'])
+        aad = bytes.fromhex(decryption_dict['aad'])
 
         return self._df.with_columns(
             [

@@ -21,11 +21,12 @@ from py4phi._encryption._pandas_encryptor import _PandasEncryptor, _BaseEncrypto
 
 from py4phi.logger_setup import logger
 from py4phi.consts import (
-    DEFAULT_CONFIG_NAME, DEFAULT_SECRET_NAME,
-    DEFAULT_PY4PHI_ENCRYPTED_PATH, DEFAULT_PY4PHI_DECRYPTED_PATH
+    DEFAULT_CONFIG_NAME, DEFAULT_SECRET_NAME, DEFAULT_PY4PHI_ENCRYPTED_NAME,
+    DEFAULT_PY4PHI_ENCRYPTED_PATH, DEFAULT_PY4PHI_DECRYPTED_PATH,
+    DEFAULT_PY4PHI_DECRYPTED_NAME, PANDAS, PYSPARK, POLARS
 )
 
-__all__ = ['from_path', 'from_dataframe']
+__all__ = ['from_path', 'from_dataframe', 'PANDAS', 'POLARS', 'PYSPARK']
 
 
 class Controller:
@@ -38,9 +39,9 @@ class Controller:
     }
 
     ENGINE_NAME_MAPPING = {
-        'pyspark': PySparkDatasetHandler,
-        'pandas': PandasDatasetHandler,
-        'polars': PolarsDatasetHandler
+        PYSPARK: PySparkDatasetHandler,
+        PANDAS: PandasDatasetHandler,
+        POLARS: PolarsDatasetHandler
     }
 
     ENCRYPTION_MAPPING: dict[Type[BaseDatasetHandler], Type[_BaseEncryptor]] = {
@@ -124,10 +125,10 @@ class Controller:
 
         """
         if not self._encrypted:
-            logger.warn('No encryption action taken! '
-                        'Perhaps you forgot to encrypt your dataframe, aborting.')
-            exit(1)
+            logger.warn('Perhaps you forgot to encrypt your dataframe, aborting.')
+            raise ValueError('No encryption action taken!')
 
+        save_location = os.path.join(save_location, DEFAULT_PY4PHI_ENCRYPTED_NAME)
         shutil.rmtree(save_location, ignore_errors=True)
         os.makedirs(save_location, exist_ok=True)
         logger.debug(f'Successfully prepared save location: {save_location}.')
@@ -152,6 +153,7 @@ class Controller:
             self,
             output_name: str = 'output_dataset',
             save_location: str = DEFAULT_PY4PHI_DECRYPTED_PATH,
+            save_format: str = 'csv',
             **kwargs
     ) -> None:
         """
@@ -163,15 +165,15 @@ class Controller:
         encrypt_config (bool, optional): Whether to encrypt config.
                                             Defaults to True.
         save_location (str, optional): Folder location to save all the outputs.
-        config_file_name (str, optional): Name of config to be saved.
-                                    Defaults to DEFAULT_CONFIG_NAME.
-        key_file_name (str, optional): Name of config to be saved.
-                                Defaults to DEFAULT_SECRET_NAME.
+        save_format (str, optional): Format to save file. Defaults to 'csv'.
         kwargs (dict, optional): keyword arguments to be supplied to dataframe writing.
 
         Returns: None.
 
         """
+        save_location = os.path.join(save_location,
+                                     DEFAULT_PY4PHI_DECRYPTED_NAME,
+                                     output_name)
         if not self._decrypted:
             logger.warn('No decryption action taken! '
                         'Perhaps you forgot to decrypt your dataframe. '
@@ -184,6 +186,7 @@ class Controller:
             self._current_df,
             output_name,
             save_location,
+            save_format=save_format,
             **kwargs
         )
         logger.info(f'Saved outputs to: {save_location}.')
@@ -230,15 +233,17 @@ class Controller:
                         f'Config path is {configs_path}. '
                         f'{'Config is encrypted' if config_encrypted else ''}')
             try:
+                path = os.path.join(configs_path, DEFAULT_PY4PHI_ENCRYPTED_NAME)
+                print(path)
                 decryption_dict = self._config_processor.read_config(
-                    configs_path,
+                    path,
                     conf_file_name=config_file_name,
                     config_encrypted=config_encrypted,
                     key_file_name=key_file_name
                 )
             except FileNotFoundError:
                 raise FileNotFoundError(
-                    f"Decryption config files not found under {configs_path}. "
+                    f"Decryption config files not found under {path}. "
                 )
 
         self._current_df = self.__encryptor.decrypt(decryption_dict)
@@ -250,7 +255,7 @@ class Controller:
 def from_path(
         path: str,
         file_type: str,
-        engine: str = 'pyspark',
+        engine: str = PYSPARK,
         log_level: str | int = INFO,
         **kwargs
 ) -> Controller:
