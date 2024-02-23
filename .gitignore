@@ -4,3 +4,4 @@ Pipfile*
 *py4phi*outputs/
 .coverage
 .mypy.ini
+*egg-info

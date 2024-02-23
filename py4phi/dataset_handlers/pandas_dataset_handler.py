@@ -89,7 +89,7 @@ class PandasDatasetHandler(BaseDatasetHandler):
         """
         suffix = '.csv' if not str(name).endswith('.csv') else ''
 
-        df.to_csv(os.path.join(path, name + suffix), index=False, **kwargs)
+        df.to_csv(os.path.join(path, name + suffix), **kwargs)
 
     @override
     def _write_parquet(
@@ -114,4 +114,4 @@ class PandasDatasetHandler(BaseDatasetHandler):
         """
         suffix = '.parquet' if not str(path).endswith('.parquet') else ''
 
-        df.to_parquet(os.path.join(path, name + suffix), index=False, **kwargs)
+        df.to_parquet(os.path.join(path, name + suffix), **kwargs)

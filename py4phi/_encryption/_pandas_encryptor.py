@@ -55,8 +55,8 @@ class _PandasEncryptor(_BaseEncryptor):
         if column not in self._df.columns:
             raise ValueError(f"No column named {column} found in file provided.")
 
-        key = bytes.fromhex(self._columns[column]['key'])
-        aad = bytes.fromhex(self._columns[column]['aad'])
+        key = bytes.fromhex(decryption_dict['key'])
+        aad = bytes.fromhex(decryption_dict['aad'])
 
         self._df[column] = self._df[column].apply(
             lambda x: self._decrypt_string(x, key, aad)
