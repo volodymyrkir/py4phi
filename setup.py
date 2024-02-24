@@ -1,20 +1,19 @@
 from setuptools import setup, find_packages
 
+
+def parse_requirements(filename):
+    """Parses and returns list of requirements from given file."""
+    with open(filename, 'r') as f:
+        return [requirement for requirement in f.read().splitlines()]
+
+
 setup(
     name='py4phi',
     version='0.1.0',
-    packages=find_packages(),
-    install_requires=[
-        'iniconfig==2.0.0',
-        'pluggy==1.3.0',
-        'pyspark==3.5.0',
-        'configparser-crypt==1.1.0',
-        'pycryptodome==3.20.0',
-        'pandas==2.2.0',
-        'pyarrow==15.0.0',
-        'polars==0.20.9',
-        'click==8.1.7'
-    ],
+    packages=find_packages(exclude=['tests.*', 'tests']),
+    package_data={"": ["*log4j.properties"]},
+    include_package_data=True,
+    install_requires=parse_requirements('requirements.txt'),
     entry_points={
         'console_scripts': [
             'py4phi=cli.cli_main:main',

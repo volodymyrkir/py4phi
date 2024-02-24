@@ -234,7 +234,6 @@ class Controller:
                         f'{'Config is encrypted' if config_encrypted else ''}')
             try:
                 path = os.path.join(configs_path, DEFAULT_PY4PHI_ENCRYPTED_NAME)
-                print(path)
                 decryption_dict = self._config_processor.read_config(
                     path,
                     conf_file_name=config_file_name,

@@ -8,7 +8,7 @@ from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler, Pat
 from py4phi.dataset_handlers.pyspark_write_utils import copy_merge_into
 from py4phi.consts import TMP_OUTPUT_DIR
 
-# TODO ADD LOGGING, ADD CUSTOM EXCEPTIONS, ADD FILE FORMATS SUPPORT, ADD TESTS, ADD PERSONAL ALLOWED TYPES MAPPING # noqa: E501
+# TODO ADD CUSTOM EXCEPTIONS, ADD FILE FORMATS SUPPORT, ADD TESTS
 
 
 class PySparkDatasetHandler(BaseDatasetHandler):
@@ -19,7 +19,7 @@ class PySparkDatasetHandler(BaseDatasetHandler):
         self._spark = (
             SparkSession.builder.appName('py4phi')
             .config("spark.driver.extraJavaOptions",
-                    "-Dlog4j.configuration=log4j.properties").getOrCreate()
+                    "-Dlog4j.configuration=py4phi/log4j.properties").getOrCreate()
         )
 
     @staticmethod
