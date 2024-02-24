@@ -1,6 +1,6 @@
 """Module containing logic to process dataset configuration."""
 import os
-from configparser import DEFAULTSECT
+from configparser import DEFAULTSECT, MissingSectionHeaderError
 from secrets import token_bytes
 
 from configparser_crypt import ConfigParserCrypt
@@ -105,7 +105,10 @@ class ConfigProcessor:
             config.aes_key = key
             config.read_encrypted(os.path.join(path, conf_file_name))
         else:
-            config.read(os.path.join(path, conf_file_name))
+            try:
+                config.read(os.path.join(path, conf_file_name))
+            except MissingSectionHeaderError:
+                raise ValueError('Tried to read encrypted config as unencrypted.')
         return {
             column: dict(config.items(column))
             for column in config.sections()
