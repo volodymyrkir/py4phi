@@ -1,5 +1,6 @@
 """Module containing logic to process dataset configuration."""
 import os
+import shutil
 from configparser import DEFAULTSECT, MissingSectionHeaderError
 from secrets import token_bytes
 
@@ -63,6 +64,8 @@ class ConfigProcessor:
             config[column_name] = params_dict
         logger.debug(f'Writing decryption config to {path}.'
                      f'{'Config will be encrypted' if encrypt_config else ''}')
+        shutil.rmtree(path, ignore_errors=True)
+        os.makedirs(path, exist_ok=True)
         if encrypt_config:
             key = self.__generate_key(os.path.join(path, key_file_name))
             config.aes_key = key

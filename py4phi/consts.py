@@ -9,6 +9,7 @@ DEFAULT_PY4PHI_ENCRYPTED_NAME = 'py4phi_encrypted_outputs'
 DEFAULT_PY4PHI_DECRYPTED_NAME = 'py4phi_decrypted_outputs'
 DEFAULT_PY4PHI_ENCRYPTED_PATH = os.getcwd()
 DEFAULT_PY4PHI_DECRYPTED_PATH = os.getcwd()
+DEFAULT_MODEL_KEY_PATH = 'py4phi_model_decryption'
 
 TMP_OUTPUT_DIR = "tmp-spark"
 

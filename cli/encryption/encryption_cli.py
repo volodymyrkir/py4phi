@@ -2,7 +2,7 @@
 
 import click
 
-from py4phi.controller import *
+from py4phi.core import *
 
 from cli.descriptions import (
     PATH_TO_INPUT_DESCRIPTION, FILE_TYPE_DESCRIPTION, COLUMN_TO_ENCRYPT,
@@ -45,7 +45,7 @@ class EncryptionOptions(click.Command):
             click.core.Option(('-e', '--engine'),
                               help=ENGINE_TYPE,
                               type=click.Choice([PYSPARK, PANDAS, POLARS]),
-                              default=PYSPARK),
+                              default=PANDAS),
         ]
         for parameter in arguments_options:
             self.params.insert(0, parameter)

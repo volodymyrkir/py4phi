@@ -1,9 +1,11 @@
 """Module for reading file or dataframe by PySpark."""
 import os
 from typing import override
+from importlib.resources import files
 
 from pyspark.sql import SparkSession, DataFrame, types as t
 
+import py4phi
 from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler, PathOrStr
 from py4phi.dataset_handlers.pyspark_write_utils import copy_merge_into
 from py4phi.consts import TMP_OUTPUT_DIR
@@ -16,10 +18,12 @@ class PySparkDatasetHandler(BaseDatasetHandler):
 
     def __init__(self):
         super().__init__()
+        log4j_props_path = files(py4phi) / "log4j.properties"
         self._spark = (
             SparkSession.builder.appName('py4phi')
             .config("spark.driver.extraJavaOptions",
-                    "-Dlog4j.configuration=py4phi/log4j.properties").getOrCreate()
+                    f"-Dlog4j.configuration=file:{log4j_props_path}")
+            .getOrCreate()
         )
 
     @staticmethod

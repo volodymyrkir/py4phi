@@ -54,7 +54,7 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
         Returns: (str) The decrypted string.
         """
         data = b64decode(data)
-        tag = data[16:32]
+        tag = data[16:32]  # TODO move to utils
         ciphertext = data[32:]
 
         cipher = AES.new(key, AES.MODE_GCM, nonce=aad)
@@ -64,7 +64,6 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
         )
 
         return decrypted_data.decode()
-
 
     @abstractmethod
     def _encrypt_column(self, column: str) -> DataFrame:
