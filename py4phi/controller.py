@@ -1,7 +1,7 @@
 """Module containing main logic and entrypoint for library."""
 import shutil
 import os
-from logging import INFO
+
 from typing import Type
 
 import pandas as pd
@@ -25,8 +25,6 @@ from py4phi.consts import (
     DEFAULT_PY4PHI_ENCRYPTED_PATH, DEFAULT_PY4PHI_DECRYPTED_PATH,
     DEFAULT_PY4PHI_DECRYPTED_NAME, PANDAS, PYSPARK, POLARS
 )
-
-__all__ = ['from_path', 'from_dataframe', 'PANDAS', 'POLARS', 'PYSPARK']
 
 
 class Controller:
@@ -129,8 +127,6 @@ class Controller:
             raise ValueError('No encryption action taken!')
 
         save_location = os.path.join(save_location, DEFAULT_PY4PHI_ENCRYPTED_NAME)
-        shutil.rmtree(save_location, ignore_errors=True)
-        os.makedirs(save_location, exist_ok=True)
         logger.debug(f'Successfully prepared save location: {save_location}.')
 
         self._config_processor.save_config(
@@ -249,71 +245,3 @@ class Controller:
         self._decrypted = True
         logger.info('Successfully decrypted current df.')
         return self._decrypted
-
-
-def from_path(
-        path: str,
-        file_type: str,
-        engine: str = PYSPARK,
-        log_level: str | int = INFO,
-        **kwargs
-) -> Controller:
-    """
-    Initialize controller object via given path and file type to interact with data.
-
-    Args:
-    ----
-    path (str): Path to file to be read.
-    file_type (str): File type for given file.
-                        Defaults to CSV.
-    engine (str, optional): Engine to use. Can be 'pandas', 'pyspark', TBD.
-                                Defaults to 'pyspark'.
-    header (bool): Boolean flag indicating whether to use
-        the first line of the file as a header. Defaults to True.
-    log_level (str|int): Logging level. Set to DEBUG for debugging.
-                     Defaults to INFO.
-    kwargs (dict): Optional keyword arguments to pass to reading method.
-
-    Returns: Controller object.
-    """
-    logger.setLevel(log_level)
-
-    logger.debug("Initializing Dataset Handler")
-    reader_cls = Controller.ENGINE_NAME_MAPPING.get(engine)
-    if not reader_cls:
-        raise KeyError(f"No such engine: {engine},"
-                       f" could be one of {tuple(Controller.ENGINE_NAME_MAPPING)}")
-    reader = reader_cls()
-    logger.info(f"Reading dataframe using {type(reader)} "
-                f"from file: {path}, of type {file_type}.")
-
-    reader.read_file(path=path, file_type=file_type, **kwargs)
-
-    return Controller(reader)
-
-
-def from_dataframe(df, log_level: str | int = INFO) -> Controller:
-    """
-    Initialize controller object via given dataframe object.
-
-    Args:
-    ----
-    df: DataFrame to be read. Read docs to see available libraries.
-    log_level (str|int): Logging level. Set to DEBUG for debugging.
-                         Defaults to INFO.
-
-    Returns: Controller object.
-
-    """
-    logger.setLevel(log_level)
-
-    if type(df) not in Controller.HANDLERS_TYPE_MAPPING.keys():
-        raise ValueError(f'Unsupported object of type {type(df)}.')
-    handler = Controller.HANDLERS_TYPE_MAPPING[type(df)]()
-
-    logger.debug(f"Using {type(handler)} dataset handler")
-    logger.info(f"Reading dataframe of type {type(df)}.")
-
-    handler.read_dataframe(df)
-
-    return Controller(handler)

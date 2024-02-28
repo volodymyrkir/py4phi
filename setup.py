@@ -11,7 +11,7 @@ setup(
     name='py4phi',
     version='0.1.0',
     packages=find_packages(exclude=['tests.*', 'tests']),
-    package_data={"": ["*log4j.properties"]},
+    package_data={"py4phi": ["log4j.properties"]},
     include_package_data=True,
     install_requires=parse_requirements('requirements.txt'),
     entry_points={
@@ -19,5 +19,4 @@ setup(
             'py4phi=cli.cli_main:main',
         ],
     },
-
 )

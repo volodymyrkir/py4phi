@@ -2,6 +2,7 @@ Pipfile*
 .idea/
 *__pycache__/
 *py4phi*outputs/
+py4phi_model_*
 .coverage
 .mypy.ini
 *egg-info
