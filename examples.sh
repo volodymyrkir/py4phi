@@ -19,3 +19,15 @@ py4phi encrypt-and-save -i ../py4phi/dataset.csv -c ACF -c 'Staff involved' -p -
 # decrypt and save when config is not encrypted
 py4phi decrypt-and-save -i ./py4phi_encrypted_outputs/output_dataset.csv -c ACF -c 'Staff involved' -p -o ./ -r header True --config_not_encrypted
 
+#encrypt model or folder
+py4phi encrypt-model -p ./py4phi_encrypted_outputs/
+
+#decrypt model or folder
+py4phi decrypt-model -p ./py4phi_encrypted_outputs/
+
+# encrypt model/folder, do not encrypt config
+py4phi encrypt-model -p ./py4phi_encrypted_outputs/ -d
+
+# decrypt model/folder when config is not encrypted
+py4phi decrypt-model -p ./py4phi_encrypted_outputs/ -c
+

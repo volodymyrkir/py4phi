@@ -1,12 +1,10 @@
 """Module that provides base class logic related to reading data."""
-from pathlib import Path
 from abc import ABC, abstractmethod
-from typing import Callable, TypeAlias, Union, Any
+from typing import Callable, TypeAlias, Any
 
 from py4phi.logger_setup import logger
-from py4phi.utils import DataFrame
+from py4phi.utils import DataFrame, PathOrStr
 
-PathOrStr = Union[Path, str]
 ReadingFunction: TypeAlias = Callable[[PathOrStr, Any, Any], Any]
 WritingFunction: TypeAlias = Callable[[Any, str, PathOrStr, Any, Any], None]
 

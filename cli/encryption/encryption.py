@@ -2,7 +2,7 @@
 
 import click
 
-from py4phi.core import *
+from py4phi.core import from_path, POLARS, PANDAS, PYSPARK
 
 from cli.descriptions import (
     PATH_TO_INPUT_DESCRIPTION, FILE_TYPE_DESCRIPTION, COLUMN_TO_ENCRYPT,
