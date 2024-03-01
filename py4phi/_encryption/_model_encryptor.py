@@ -2,19 +2,29 @@
 import os
 from base64 import b64encode, b64decode
 from secrets import token_hex
-from typing import Any
 
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
 from py4phi.logger_setup import logger
+from py4phi.utils import PathOrStr
 
 
 class ModelEncryptor:
     """Class for model encryption."""
 
     @staticmethod
-    def encrypt_folder(folder_path: str) -> dict[str, dict]:
+    def encrypt_folder(folder_path: PathOrStr) -> dict[str, dict]:
+        """
+        Encrypt folder or ML model recursively.
+
+        Args:
+        ----
+            folder_path(PathOrStr): Path to the folder to encrypt.
+
+        Returns: Decryption dict of str, dict.
+
+        """
         key, aad = bytes.fromhex(token_hex(16)), bytes.fromhex(token_hex(16))
         logger.info(f"Encrypting model/folder at {folder_path}")
         for root, dirs, files in os.walk(folder_path):
@@ -39,7 +49,19 @@ class ModelEncryptor:
         }
 
     @staticmethod
-    def decrypt_folder(folder_path: str, key: str, aad: str) -> Any:
+    def decrypt_folder(folder_path: PathOrStr, key: str, aad: str) -> None:
+        """
+        Decrypt folder or ML model recursively.
+
+        Args:
+        ----
+        folder_path(PathOrStr): Path to the folder to decrypt.
+        key(str): The hexadecimal key.
+        aad(str): The hexadecimal aad.
+
+        Returns: Decryption dict of str, dict.
+
+        """
         key_bytes, aad_bytes = bytes.fromhex(key), bytes.fromhex(aad)
         logger.info(f"Decrypting model/folder at {folder_path}")
         for root, dirs, files in os.walk(folder_path):

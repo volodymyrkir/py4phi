@@ -39,3 +39,8 @@ DISABLE_CONFIG_ENCRYPTION = ('Flag option. Defaults to false, but when included,
 
 CONFIG_NOT_ENCRYPTED = ('Flag option. When included in command execution, py4phi skips config decryption process.'
                         'Should be used only if dataset has been encrypted with --disable_config_encryption option.')
+
+INPUT_PATH_FOLDER = 'Input path for model/folder.'
+
+INPUT_ENCRYPTED_FOLDER = ('Input path for encrypted model/folder.'
+                          'Note that along with this path, there should be decryption config(-s).')
