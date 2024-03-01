@@ -1,11 +1,9 @@
 """Test pyspark encryptor logic."""
-import os
 from secrets import token_hex
 
 import pytest
 
-
-from py4phi._encryption._model_encryptor import ModelEncryptor, AES
+from py4phi._encryption._model_encryptor import ModelEncryptor
 
 
 @pytest.fixture()
@@ -16,7 +14,8 @@ def encryptor():
 def test_encrypt_folder(tmp_path_factory, encryptor, mocker):
     mock_aes = mocker.MagicMock()
     mocker.patch('py4phi._encryption._model_encryptor.AES.new', mock_aes)
-    mocker.patch('py4phi._encryption._model_encryptor.b64encode', mocker.MagicMock(return_value=b'1'))
+    mocker.patch('py4phi._encryption._model_encryptor.b64encode',
+                 mocker.MagicMock(return_value=b'1'))
     mock_cipher = mock_aes.return_value
     mock_cipher.encrypt_and_digest.return_value = (b'encrypted_data', b'tag')
     base = tmp_path_factory.getbasetemp()
@@ -49,4 +48,5 @@ def test_decrypt_folder(tmp_path, mocker,encryptor):
     assert all(file_path.with_suffix("").exists() and not file_path.exists()
                for file_path in encrypted_files)
 
-    assert all(mock.call_count == len(encrypted_files) for mock in [mock_aes_new, unpad_mock, b644_mock])
+    assert all(mock.call_count == len(encrypted_files)
+               for mock in [mock_aes_new, unpad_mock, b644_mock])

@@ -55,7 +55,9 @@ class ModelEncryptor:
 
         Args:
         ----
-            folder_path(PathOrStr): Path to the folder to decrypt.
+        folder_path(PathOrStr): Path to the folder to decrypt.
+        key(str): The hexadecimal key.
+        aad(str): The hexadecimal aad.
 
         Returns: Decryption dict of str, dict.
 
