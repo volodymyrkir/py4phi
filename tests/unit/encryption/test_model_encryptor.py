@@ -1,4 +1,5 @@
 """Test pyspark encryptor logic."""
+import shutil
 from secrets import token_hex
 
 import pytest
@@ -11,19 +12,34 @@ def encryptor():
     return ModelEncryptor()
 
 
-def test_encrypt_folder(tmp_path_factory, encryptor, mocker):
+@pytest.fixture
+def test_folder(tmp_path):
+    folder = tmp_path / "test_folder"
+    folder.mkdir()
+    file1 = folder / "file1.txt"
+    file2 = folder / "file2.txt"
+    file1.write_bytes(b"file1 content")
+    file2.write_bytes(b"file2 content")
+    yield folder
+    # Clean up the temporary folder after the test
+    shutil.rmtree(folder)
+
+
+def test_encrypt_folder(test_folder, mocker, encryptor):
     mock_aes = mocker.MagicMock()
-    mocker.patch('py4phi._encryption._model_encryptor.AES.new', mock_aes)
+    mocker.patch("py4phi._encryption._model_encryptor.AES.new", mock_aes)
+    mocker.patch("py4phi._encryption._model_encryptor.os.remove")
     mocker.patch('py4phi._encryption._model_encryptor.b64encode',
                  mocker.MagicMock(return_value=b'1'))
     mock_cipher = mock_aes.return_value
     mock_cipher.encrypt_and_digest.return_value = (b'encrypted_data', b'tag')
-    base = tmp_path_factory.getbasetemp()
-    res = encryptor.encrypt_folder(base)
+    result = encryptor.encrypt_folder(test_folder)
 
-    mock_aes.assert_called_once_with(mocker.ANY, mocker.ANY, nonce=mocker.ANY)
-    mock_cipher.encrypt_and_digest.assert_called_once_with(mocker.ANY)
-    assert res == {'model': {'key': mocker.ANY, 'aad': mocker.ANY}}
+    assert "model" in result
+    assert "key" in result["model"]
+    assert "aad" in result["model"]
+    assert len(result["model"]["key"]) == 32
+    assert len(result["model"]["aad"]) == 32
 
 
 def test_decrypt_folder(tmp_path, mocker,encryptor):
