@@ -10,6 +10,15 @@ from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler, Pat
 class PandasDatasetHandler(BaseDatasetHandler):
     """Class for reading in file or Pandas dataframe."""
 
+    def to_pandas(self) -> None:
+        """
+        Cast current dataframe to pandas dataframe.
+
+        Returns: (pd.Dataframe) Pandas dataframe.
+
+        """
+        return self._df
+
     @staticmethod
     @override
     def print_df(df: pd.DataFrame) -> None:

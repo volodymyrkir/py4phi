@@ -3,6 +3,7 @@ import os
 from typing import override
 from importlib.resources import files
 
+import pandas as pd
 from pyspark.sql import SparkSession, DataFrame, types as t
 
 import py4phi
@@ -146,3 +147,13 @@ class PySparkDatasetHandler(BaseDatasetHandler):
             os.path.join(path, name) + suffix,
             delete_source=True,
         )
+
+    @override
+    def to_pandas(self) -> pd.DataFrame:
+        """
+        Cast current dataframe to pandas dataframe.
+
+        Returns: (pd.Dataframe) Pandas dataframe.
+
+        """
+        return self._df.toPandas()

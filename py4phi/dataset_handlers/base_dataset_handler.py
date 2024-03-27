@@ -2,6 +2,8 @@
 from abc import ABC, abstractmethod
 from typing import Callable, TypeAlias, Any
 
+import pandas as pd
+
 from py4phi.logger_setup import logger
 from py4phi.utils import DataFrame, PathOrStr
 
@@ -220,6 +222,16 @@ class BaseDatasetHandler(ABC):
         df (DataFrame): DataFrame.
 
         Returns: None.
+
+        """
+        pass
+
+    @abstractmethod
+    def to_pandas(self) -> pd.DataFrame:
+        """
+        Cast current dataframe to pandas dataframe.
+
+        Returns: (pd.Dataframe) Pandas dataframe.
 
         """
         pass

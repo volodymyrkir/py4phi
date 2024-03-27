@@ -2,6 +2,7 @@
 import os
 from typing import override
 
+import pandas as pd
 import polars as pl
 
 from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler, PathOrStr
@@ -9,6 +10,15 @@ from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler, Pat
 
 class PolarsDatasetHandler(BaseDatasetHandler):
     """Class for reading in file or Polars dataframe."""
+
+    def to_pandas(self) -> pd.DataFrame:
+        """
+        Cast current dataframe to pandas dataframe.
+
+        Returns: (pd.Dataframe) Pandas dataframe.
+
+        """
+        return self._df.to_pandas()
 
     @staticmethod
     @override

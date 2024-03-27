@@ -1,13 +1,13 @@
 """Module containing main logic and entrypoint for library."""
-import shutil
 import os
 
-from typing import Type
+from typing import Type, Optional
 
 import pandas as pd
 import polars as pl
 from pyspark.sql import DataFrame
 
+from py4phi.analytics.principal_component_analysis import PrincipalComponentAnalysis
 from py4phi._encryption._polars_encryptor import _PolarsEncryptor
 from py4phi.config_processor import ConfigProcessor
 from py4phi.dataset_handlers.base_dataset_handler import (
@@ -20,10 +20,11 @@ from py4phi._encryption._pyspark_encryptor import _PySparkEncryptor
 from py4phi._encryption._pandas_encryptor import _PandasEncryptor, _BaseEncryptor
 
 from py4phi.logger_setup import logger
+from py4phi.utils import prepare_location
 from py4phi.consts import (
     DEFAULT_CONFIG_NAME, DEFAULT_SECRET_NAME, DEFAULT_PY4PHI_ENCRYPTED_NAME,
-    DEFAULT_PY4PHI_ENCRYPTED_PATH, DEFAULT_PY4PHI_DECRYPTED_PATH,
-    DEFAULT_PY4PHI_DECRYPTED_NAME, PANDAS, PYSPARK, POLARS
+    CWD, DEFAULT_PY4PHI_DECRYPTED_NAME, DEFAULT_PCA_REDUCED_FOLDER_NAME,
+    DEFAULT_PCA_OUTPUT_NAME, PANDAS, PYSPARK, POLARS
 )
 
 
@@ -98,7 +99,7 @@ class Controller:
     def save_encrypted(
             self,
             output_name: str = 'output_dataset',
-            save_location: str = DEFAULT_PY4PHI_ENCRYPTED_PATH,
+            save_location: str = CWD,
             config_file_name: str = DEFAULT_CONFIG_NAME,
             encrypt_config: bool = True,
             key_file_name: str = DEFAULT_SECRET_NAME,
@@ -148,7 +149,7 @@ class Controller:
     def save_decrypted(
             self,
             output_name: str = 'output_dataset',
-            save_location: str = DEFAULT_PY4PHI_DECRYPTED_PATH,
+            save_location: str = CWD,
             save_format: str = 'csv',
             **kwargs
     ) -> None:
@@ -174,9 +175,7 @@ class Controller:
             logger.warn('No decryption action taken! '
                         'Perhaps you forgot to decrypt your dataframe. '
                         'Saving non-decrypted data.')
-        shutil.rmtree(save_location, ignore_errors=True)
-        os.makedirs(save_location, exist_ok=True)
-        logger.debug(f'Successfully prepared save location: {save_location}.')
+        prepare_location(location=save_location)
 
         self._dataset_handler.write(
             self._current_df,
@@ -190,7 +189,7 @@ class Controller:
     def decrypt(
             self,
             columns_to_decrypt: list[str],
-            configs_path: str = DEFAULT_PY4PHI_ENCRYPTED_PATH,
+            configs_path: str = CWD,
             config_file_name: str = DEFAULT_CONFIG_NAME,
             config_encrypted: bool = True,
             key_file_name: str = DEFAULT_SECRET_NAME
@@ -245,3 +244,78 @@ class Controller:
         self._decrypted = True
         logger.info('Successfully decrypted current df.')
         return self._decrypted
+
+    def perform_pca(
+            self,
+            target_feature: Optional[str] = None,
+            ignore_columns: list[str] = None,
+            analyze: bool = True,
+            rec_threshold: Optional[float] = 0.95,
+            n_components: Optional[int] = None,
+            save_format: Optional[str] = 'CSV',
+            save_folder: str = DEFAULT_PCA_REDUCED_FOLDER_NAME,
+            save_name: str = DEFAULT_PCA_OUTPUT_NAME,
+            **kwargs
+    ) -> None:
+        """
+        Perform PCA and reduce dimensionality of the dataset.
+
+        Please take a close look at all the parameters' documentation.
+
+        Args:
+        ----
+        target_feature (Optional[str]): To keep the target feature, provide its name.
+                                            Defaults to None.
+        ignore_columns (list[str]): To ignore additional columns (e.g. string columns),
+                                        provide them to this parameter.
+                                        This will preserve columns,
+                                        i.e. they will not be used in PCA.
+                                        Defaults to None.
+        analyze (bool): By default is True. If disabled, it will reduce dimensionality
+                            and save the reduced dataset to the specified folder.
+                            By default, only performs analysis
+                             and suggests how many components to save.
+        rec_threshold (Optional[float]): Sets recommendation
+                                            cumulative variance threshold.
+                                            Defaults to 0.95.
+        n_components (Optional[int]): Number of components
+                                        to use for analysis and reduction.
+                                        It is not recommended to set this parameter,
+                                        by default all features are used for analysis,
+                                        and only recommended amount
+                                         - for actual reduction. Defaults None.
+        save_format (Optional[str]): Format to use for saving the reduced dataset.
+                                        Defaults to CSV file type.
+        save_folder (Optional[str]): Name of the folder to save the reduced dataset.
+                                        Defaults to 'py4phi_pca_outputs'.
+        save_name (Optional[str]): Name of the file to save the reduced dataset.
+                                        Defaults to 'pca_outputs'.
+        kwargs (dict, optional): keyword arguments to be supplied to dataframe writing.
+
+        """
+        df = self._dataset_handler.to_pandas()
+        df.convert_dtypes(convert_floating=True, convert_integer=True)
+        analyzer = PrincipalComponentAnalysis(
+            df,
+            target_feature
+        )
+        result = analyzer.component_analysis(
+            ignore_columns=ignore_columns,
+            rec_threshold=rec_threshold,
+            n_components=n_components,
+            reduce_features=not analyze
+        )
+
+        if result is not None:
+            logger.info('Finished PCA reduction.'
+                        f' Output dataset length has {len(result.columns)} fields.')
+            handler = PandasDatasetHandler()
+            save_location = os.path.join(CWD, save_folder)
+            prepare_location(location=save_location)
+            handler.write(
+                result,
+                name=save_name,
+                path=save_location,
+                save_format=save_format,
+                **kwargs
+            )
