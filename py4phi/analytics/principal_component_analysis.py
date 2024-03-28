@@ -5,14 +5,14 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 from py4phi.logger_setup import logger
+from py4phi.analytics.base_analytics import Analytics
 
 
-class PrincipalComponentAnalysis:
+class PrincipalComponentAnalysis(Analytics):
     """Class to perform principal component analysis on a pandas dataframe."""
 
     def __init__(self, df: pd.DataFrame, target_column: str | None = None) -> None:
-        self._df = df
-        self._target_column = target_column
+        super().__init__(df, target_column)
         self.scaler = StandardScaler()
 
     def component_analysis(

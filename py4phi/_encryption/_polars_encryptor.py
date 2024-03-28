@@ -52,7 +52,7 @@ class _PolarsEncryptor(_BaseEncryptor):
         decryption_dict (dict[str, dict]): The decryption dictionary
                                             with key and aad keys.
 
-        Returns: PySpark DataFrame with decrypted column.
+        Returns: Polars DataFrame with decrypted column.
 
         """
         if column not in self._df.columns:
