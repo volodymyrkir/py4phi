@@ -28,7 +28,7 @@ class PolarsDatasetHandler(BaseDatasetHandler):
 
         Args:
         ----
-        df (DataFrame): PySpark dataframe.
+        df (DataFrame): Polars dataframe.
 
         Returns: None.
 

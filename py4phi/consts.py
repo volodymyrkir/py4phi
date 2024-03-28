@@ -4,6 +4,8 @@ import os
 DEFAULT_SECRET_NAME = 'secret.key'
 DEFAULT_CONFIG_NAME = 'decrypt.conf'
 
+DEFAULT_FEATURE_SELECTION_FOLDER_NAME = 'fs_outputs'
+DEFAULT_FEATURE_SELECTION_OUTPUTS_NAME = 'py4phi_fs_outputs'
 DEFAULT_PCA_REDUCED_FOLDER_NAME = 'py4phi_pca_outputs'
 DEFAULT_PCA_OUTPUT_NAME = 'pca_outputs'
 DEFAULT_PY4PHI_ENCRYPTED_NAME = 'py4phi_encrypted_outputs'

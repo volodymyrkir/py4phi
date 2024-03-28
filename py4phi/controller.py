@@ -8,6 +8,7 @@ import polars as pl
 from pyspark.sql import DataFrame
 
 from py4phi.analytics.principal_component_analysis import PrincipalComponentAnalysis
+from py4phi.analytics.feature_selection import FeatureSelection
 from py4phi._encryption._polars_encryptor import _PolarsEncryptor
 from py4phi.config_processor import ConfigProcessor
 from py4phi.dataset_handlers.base_dataset_handler import (
@@ -24,7 +25,8 @@ from py4phi.utils import prepare_location
 from py4phi.consts import (
     DEFAULT_CONFIG_NAME, DEFAULT_SECRET_NAME, DEFAULT_PY4PHI_ENCRYPTED_NAME,
     CWD, DEFAULT_PY4PHI_DECRYPTED_NAME, DEFAULT_PCA_REDUCED_FOLDER_NAME,
-    DEFAULT_PCA_OUTPUT_NAME, PANDAS, PYSPARK, POLARS
+    DEFAULT_PCA_OUTPUT_NAME, DEFAULT_FEATURE_SELECTION_FOLDER_NAME,
+    DEFAULT_FEATURE_SELECTION_OUTPUTS_NAME, PANDAS, PYSPARK, POLARS,
 )
 
 
@@ -249,7 +251,7 @@ class Controller:
             self,
             target_feature: Optional[str] = None,
             ignore_columns: list[str] = None,
-            analyze: bool = True,
+            accept_recommended: bool = False,
             rec_threshold: Optional[float] = 0.95,
             n_components: Optional[int] = None,
             save_format: Optional[str] = 'CSV',
@@ -271,10 +273,10 @@ class Controller:
                                         This will preserve columns,
                                         i.e. they will not be used in PCA.
                                         Defaults to None.
-        analyze (bool): By default is True. If disabled, it will reduce dimensionality
-                            and save the reduced dataset to the specified folder.
-                            By default, only performs analysis
-                             and suggests how many components to save.
+        accept_recommended (bool): By default is False.
+            If True, it will reduce dimensionality and save the reduced dataset
+             to the specified folder.
+            By default, only performs analysis and suggests how many components to save.
         rec_threshold (Optional[float]): Sets recommendation
                                             cumulative variance threshold.
                                             Defaults to 0.95.
@@ -294,7 +296,6 @@ class Controller:
 
         """
         df = self._dataset_handler.to_pandas()
-        df.convert_dtypes(convert_floating=True, convert_integer=True)
         analyzer = PrincipalComponentAnalysis(
             df,
             target_feature
@@ -303,12 +304,12 @@ class Controller:
             ignore_columns=ignore_columns,
             rec_threshold=rec_threshold,
             n_components=n_components,
-            reduce_features=not analyze
+            reduce_features=accept_recommended
         )
 
-        if result is not None:
+        if accept_recommended:
             logger.info('Finished PCA reduction.'
-                        f' Output dataset length has {len(result.columns)} fields.')
+                        f' Output dataset has {len(result.columns)} features in total.')
             handler = PandasDatasetHandler()
             save_location = os.path.join(CWD, save_folder)
             prepare_location(location=save_location)
@@ -319,3 +320,73 @@ class Controller:
                 save_format=save_format,
                 **kwargs
             )
+
+    def perform_feature_selection(
+            self,
+            target_feature: str,
+            drop_recommended: bool = False,
+            target_correlation_threshold: Optional[float] = 0.5,
+            features_correlation_threshold: Optional[float] = 0.5,
+            save_format: Optional[str] = 'CSV',
+            save_folder: str = DEFAULT_FEATURE_SELECTION_OUTPUTS_NAME,
+            save_name: str = DEFAULT_FEATURE_SELECTION_FOLDER_NAME,
+            **kwargs
+    ) -> None:
+        """
+        Perform feature selection.
+
+        Requires target feature to be passed.
+        Suggests columns to be dropped based on correlational analysis.
+
+        Please take a close look at all the parameters' documentation.
+
+        Args:
+        ----
+        target_feature (str): The target feature to be used for correlational analysis.
+        drop_recommended (bool): Whether to ONLY find potentially redundant columns.
+                                    If set to True, will drop them from the dataset.
+                                    Defaults to False.
+
+        target_correlation_threshold (Optional[float]): Sets correlation threshold
+            while recommending features to be dropped based on correlational analysis
+            against the target feature. Can be 0.0-1.0. Defaults to 0.5.
+
+        features_correlation_threshold (Optional[float]): Sets correlation threshold
+            while recommending features to be dropped based on correlational analysis
+            against each other. Can be 0.0-1.0. Defaults to 0.5.
+
+        save_format (Optional[str]): Format to use for saving the reduced dataset.
+                                        Defaults to CSV file type.
+        save_folder (Optional[str]): Name of the folder to save the reduced dataset.
+                                        Defaults to 'py4phi_pca_outputs'.
+        save_name (Optional[str]): Name of the file to save the reduced dataset.
+                                        Defaults to 'pca_outputs'.
+        kwargs (dict, optional): keyword arguments to be supplied to dataframe writing.
+
+        """
+        df = self._dataset_handler.to_pandas()
+
+        analyzer = FeatureSelection(
+            df,
+            target_feature
+        )
+        result = analyzer.correlation_analysis(
+            drop_recommended=drop_recommended,
+            target_corr_threshold=target_correlation_threshold,
+            feature_corr_threshold=features_correlation_threshold,
+        )
+
+        if drop_recommended:
+            logger.info('Finished feature selection process. '
+                        f'Output dataset has {len(result.columns)} features in total.')
+            handler = PandasDatasetHandler()
+            save_location = os.path.join(CWD, save_folder)
+            prepare_location(location=save_location)
+            handler.write(
+                result,
+                name=save_name,
+                path=save_location,
+                save_format=save_format,
+                **kwargs
+            )
+
