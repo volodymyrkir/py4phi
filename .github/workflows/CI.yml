@@ -21,6 +21,7 @@ jobs:
     - name: Analyze the code with ruff
       run: |
         ruff check py4phi/
+        ruff check cli/
     - name: Analyze the tests with ruff
       run: |    
         ruff check --config ruff-test.toml tests/

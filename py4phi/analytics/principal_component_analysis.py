@@ -15,12 +15,52 @@ class PrincipalComponentAnalysis(Analytics):
         super().__init__(df, target_column)
         self.scaler = StandardScaler()
 
+    def handle_nulls(self, df: pd.DataFrame, mode: str = 'fill') -> pd.DataFrame:
+        """
+        Remove null values from a pandas dataframe.
+
+        Nulls are handled by either filling them with mean,
+        or simply removing rows with NAs in any of the columns.
+        If target_column is provided, it is used to fill missing
+         values with mean value for the particular class of the target feature.
+
+        Args:
+        ----
+        df (pd.DataFrame): Input pandas dataframe.
+        mode (str): The mode to be used while handling NA values.
+                    By default, will use 'fill' to fill missing values with means.
+                    The alternative option is 'drop' to drop rows with missing values.
+
+        Returns: (pd.DataFrame) A dataframe without NA values.
+        """
+        if mode == 'fill':
+            for column in df.columns:
+                if self._target_column:
+                    logger.info(f'Filling empty values for column {column} '
+                                'with mean based on target feature.')
+                    df[column] = self._df[column].fillna(
+                        self._df.groupby(self._target_column)[column].transform('mean')
+                    )
+                else:
+                    logger.info(f'Filling empty values for column {column} '
+                                'with mean of the column.')
+                    df[column] = self._df[column].fillna(self._df[column].mean())
+        elif mode == 'drop':
+            len_before = len(df)
+            df = df.dropna(axis=0, how='any')
+            logger.warn(f'Dropped {len_before - len(df)} records with NA values.')
+        else:
+            raise ValueError(f'Not supported null handle mode {mode}.')
+
+        return df
+
     def component_analysis(
             self,
             ignore_columns: list[str] = None,
             rec_threshold: float = 0.95,
             n_components: int | None = None,
-            reduce_features: bool = False
+            reduce_features: bool = False,
+            nulls_mode: str = 'fill'
     ) -> pd.DataFrame | None:
         """
         Perform PCA on a dataset and suggest number of components to be preserved.
@@ -36,6 +76,9 @@ class PrincipalComponentAnalysis(Analytics):
         n_components (int): The number of principal components to analyze with.
                       Defaults to 95%.
         reduce_features (bool): Whether to actually perform PCA and reduce dataset.
+        nulls_mode (str): The mode to be used in the fill_or_drop_nulls function.
+                          By default, will use 'fill' to fill missing values with means.
+                          Available option is 'drop' to drop rows with missing values.
 
         Returns:
         -------
@@ -61,39 +104,46 @@ class PrincipalComponentAnalysis(Analytics):
             for col in features.columns:
                 features[col] = pd.to_numeric(features[col])
         except ValueError:
-            raise TypeError(f"Dataset contains non-numeric column {col}. "
-                            "Consider using MFA for dimensionality reduction."
-                            "Or pass this column to the ignore_columns argument")
+            raise TypeError(
+                f"Provided dataset contains non-numeric column {col}. "
+                "Consider using other techniques for dimensionality reduction"
+                "or pass this column to the ignore_columns parameter."
+            )
+
+        features = self.handle_nulls(features, nulls_mode)
+
+        if len(features.columns) == 0:
+            raise ValueError("Provided dataset is empty. Cannot perform PCA.")
 
         scaled_data = self.scaler.fit_transform(features)
         pca_components = n_components or features.shape[1]
         if pca_components > features.shape[1]:
             raise ValueError("Can't perform PCA with number of "
-                             "components more than number of original features.")
+                             "components more than the number of original features.")
         logger.info(f'Performing analysis-PCA with {pca_components} components.')
         pca = PCA(n_components=pca_components)
 
         pca.fit(scaled_data)
         explained_variance = pca.explained_variance_ratio_
         logger.info('PCA explained variance:')
-        for feature, variance in zip(features.columns, explained_variance):
-            logger.info(f'Feature {feature}: {variance:.2f}')
+        for component, variance in enumerate(explained_variance, 1):
+            logger.info(f'Component #{component}: {variance:.2%}')
         n_components_to_keep = np.where(
             np.cumsum(pca.explained_variance_ratio_) >= rec_threshold
         )[0][0] + 1
         logger.info("Explained variance suggests keeping"
                     f" at least {n_components_to_keep} components "
-                    f"({rec_threshold:%} cumulative variance).")
+                    f"({rec_threshold:.2%} cumulative variance).")
 
         if reduce_features:
             if n_components:
                 final_components = n_components
                 logger.info(f"Using {n_components} components "
-                            f"as provided by User.")
+                            "as provided by User.")
             else:
                 final_components = n_components_to_keep
                 logger.info(f"Using {n_components_to_keep} components "
-                            f"automatically as recommended above.")
+                            "automatically as recommended above.")
 
             return self._reduce_features(
                 final_components,
@@ -135,4 +185,3 @@ class PrincipalComponentAnalysis(Analytics):
             dropped_df = self._df[columns_to_join]
             reduced_data = pd.concat([reduced_data, dropped_df], axis=1)
         return reduced_data
-

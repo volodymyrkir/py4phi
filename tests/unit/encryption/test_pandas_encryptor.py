@@ -69,7 +69,7 @@ def test_encrypt_column_polars(encryptor_polars, decrypted_df, encrypted_df, moc
     encryptor_polars._df = df
     mocker.patch.object(encryptor_polars, '_get_and_save_salt', mocker.MagicMock())
     actual_df = encryptor_polars._encrypt_column('col1')
-    assert pl.from_pandas(encrypted_df).frame_equal(actual_df)
+    assert pl.from_pandas(encrypted_df).equals(actual_df)
 
 
 def test_decrypt_column(encryptor_pandas, decrypted_df, encrypted_df, mocker):
@@ -85,7 +85,7 @@ def test_decrypt_column_polars(encryptor_polars, decrypted_df, encrypted_df, moc
     mocker.patch.object(encryptor_polars, '_get_and_save_salt', mocker.MagicMock())
     actual_df = encryptor_polars._decrypt_column('col1',
                                                  encryptor_polars._columns['col1'])
-    pl.from_pandas(decrypted_df).frame_equal(actual_df)
+    pl.from_pandas(decrypted_df).equals(actual_df)
 
 
 @pytest.mark.parametrize('column, specific_encryptor', [
