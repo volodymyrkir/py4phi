@@ -171,8 +171,7 @@ class Controller:
 
         """
         save_location = os.path.join(save_location,
-                                     DEFAULT_PY4PHI_DECRYPTED_NAME,
-                                     output_name)
+                                     DEFAULT_PY4PHI_DECRYPTED_NAME)
         if not self._decrypted:
             logger.warn('No decryption action taken! '
                         'Perhaps you forgot to decrypt your dataframe. '
@@ -226,11 +225,11 @@ class Controller:
                          "ignoring provided configs paths...")
         else:
             logger.info(f'Kicking off decryption on current dataframe on columns: '
-                        f'{columns_to_decrypt}. '
-                        f'Config path is {configs_path}. '
-                        f'{'Config is encrypted' if config_encrypted else ''}')
+                        f'{columns_to_decrypt}. ')
             try:
                 path = os.path.join(configs_path, DEFAULT_PY4PHI_ENCRYPTED_NAME)
+                logger.info(f'Config path is {path}. '
+                            f'{'Config is encrypted' if config_encrypted else ''}')
                 decryption_dict = self._config_processor.read_config(
                     path,
                     conf_file_name=config_file_name,
@@ -251,9 +250,10 @@ class Controller:
             self,
             target_feature: Optional[str] = None,
             ignore_columns: list[str] = None,
-            accept_recommended: bool = False,
+            save_reduced: bool = False,
             rec_threshold: Optional[float] = 0.95,
             n_components: Optional[int] = None,
+            nulls_mode: str = 'fill',
             save_format: Optional[str] = 'CSV',
             save_folder: str = DEFAULT_PCA_REDUCED_FOLDER_NAME,
             save_name: str = DEFAULT_PCA_OUTPUT_NAME,
@@ -268,28 +268,37 @@ class Controller:
         ----
         target_feature (Optional[str]): To keep the target feature, provide its name.
                                             Defaults to None.
+
         ignore_columns (list[str]): To ignore additional columns (e.g. string columns),
                                         provide them to this parameter.
                                         This will preserve columns,
                                         i.e. they will not be used in PCA.
                                         Defaults to None.
-        accept_recommended (bool): By default is False.
+
+        save_reduced (bool): By default is False.
             If True, it will reduce dimensionality and save the reduced dataset
-             to the specified folder.
+            to the specified folder.
             By default, only performs analysis and suggests how many components to save.
+
         rec_threshold (Optional[float]): Sets recommendation
                                             cumulative variance threshold.
                                             Defaults to 0.95.
+
         n_components (Optional[int]): Number of components
                                         to use for analysis and reduction.
                                         It is not recommended to set this parameter,
                                         by default all features are used for analysis,
                                         and only recommended amount
                                          - for actual reduction. Defaults None.
+
+        nulls_mode (str): The mode to be used in the fill_or_drop_nulls function.
+                          By default, will use 'fill' to fill missing values with means.
+                          Available option is 'drop' to drop rows with missing values.
+
         save_format (Optional[str]): Format to use for saving the reduced dataset.
                                         Defaults to CSV file type.
-        save_folder (Optional[str]): Name of the folder to save the reduced dataset.
-                                        Defaults to 'py4phi_pca_outputs'.
+        save_folder (Optional[str]): Path to save the reduced dataset.
+                                        Defaults to current working directory.
         save_name (Optional[str]): Name of the file to save the reduced dataset.
                                         Defaults to 'pca_outputs'.
         kwargs (dict, optional): keyword arguments to be supplied to dataframe writing.
@@ -304,15 +313,17 @@ class Controller:
             ignore_columns=ignore_columns,
             rec_threshold=rec_threshold,
             n_components=n_components,
-            reduce_features=accept_recommended
+            reduce_features=save_reduced,
+            nulls_mode=nulls_mode
         )
 
-        if accept_recommended:
+        if save_reduced:
             logger.info('Finished PCA reduction.'
-                        f' Output dataset has {len(result.columns)} features in total.')
+                        f' Output dataset has {len(result.columns)} features total.')
             handler = PandasDatasetHandler()
-            save_location = os.path.join(CWD, save_folder)
+            save_location = os.path.join(save_folder, DEFAULT_PCA_REDUCED_FOLDER_NAME)
             prepare_location(location=save_location)
+            logger.info(f'Saving reduced dataframe to {save_location}')
             handler.write(
                 result,
                 name=save_name,
@@ -376,6 +387,7 @@ class Controller:
             feature_corr_threshold=features_correlation_threshold,
         )
 
+        # TODO move to separate ?
         if drop_recommended:
             logger.info('Finished feature selection process. '
                         f'Output dataset has {len(result.columns)} features in total.')

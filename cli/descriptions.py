@@ -44,3 +44,17 @@ INPUT_PATH_FOLDER = 'Input path for model/folder.'
 
 INPUT_ENCRYPTED_FOLDER = ('Input path for encrypted model/folder.'
                           'Note that along with this path, there should be decryption config(-s).')
+
+TARGET_FEATURE = 'Target feature of your dataset.'
+COLUMNS_TO_IGNORE = 'Columns to be ignored and preserved during PCA'
+SAVE_REDUCED = 'If enabled, will save dataset with reduced dimensionality.'
+CUM_VAR_THRESHOLD = 'Sets cumulative variance recommendation threshold. Defaults to 0.95'
+NUM_COMPONENTS = ('Number of components to use for PCA. '
+                  'If provided will be used to analyze'
+                  'or analyze and actually reduce dimensionality of the dataset. '
+                  'If not provided, a recommended number of components will be used.')
+NULLS_MODE = ('Nulls handle mode to be used for PCA null handling in the dataset. '
+              'Can be "fill" or "drop", where fill will fill each column with the mean value in the column,'
+              ' and drop will drop all rows where column is null. '
+              'Recommended modes is "fill" with a combination of data pre-processing, '
+              'so that no data is lost by using mean.')

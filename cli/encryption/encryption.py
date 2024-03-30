@@ -1,29 +1,22 @@
-"""This module contains the encryption CLI commands."""
+"""Module containing the encryption CLI commands."""
 
 import click
 
 from py4phi.core import from_path, POLARS, PANDAS, PYSPARK
 
+from cli.utils import parse_key_value
 from cli.descriptions import (
     PATH_TO_INPUT_DESCRIPTION, FILE_TYPE_DESCRIPTION, COLUMN_TO_ENCRYPT,
-    LOG_LEVEL_DESCRIPTION, ENGINE_TYPE, PATH_TO_OUTPUT_DESCRIPTION, PRINT_INTERMEDIATE, READ_OPTIONS, SAVE_FILE_TYPE,
+    LOG_LEVEL_DESCRIPTION, ENGINE_TYPE, PATH_TO_OUTPUT_DESCRIPTION,
+    PRINT_INTERMEDIATE, READ_OPTIONS, SAVE_FILE_TYPE,
     COLUMN_TO_DECRYPT, DISABLE_CONFIG_ENCRYPTION, CONFIG_NOT_ENCRYPTED, WRITE_OPTIONS
 )
 from py4phi.dataset_handlers.base_dataset_handler import PathOrStr
 
 
-def parse_key_value(*args):
-    """Utility function to parse read/write key-value booleans."""
-    opts = dict(args[-1])
-    d = {
-        key: val.lower() == 'true'
-        if val.lower() in ('true', 'false') else val
-        for key, val in opts.items()
-    }
-    return d
-
-
 class EncryptionOptions(click.Command):
+    """Encapsulates common options for encryption command group."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         arguments_options = [
@@ -33,7 +26,9 @@ class EncryptionOptions(click.Command):
                               default='INFO'),
             click.core.Option(('-i', '--input', 'input_path'),
                               help=PATH_TO_INPUT_DESCRIPTION,
-                              type=click.Path(exists=True, readable=True, dir_okay=True),
+                              type=click.Path(
+                                  exists=True, readable=True, dir_okay=True
+                              ),
                               required=True),
             click.core.Option(('-r', '--read_option', 'read_options'),
                               help=READ_OPTIONS,
@@ -53,6 +48,7 @@ class EncryptionOptions(click.Command):
 
 @click.group()
 def encryption_group():
+    """Encryption CLI commands group."""
     pass
 
 
@@ -96,7 +92,7 @@ def decrypt_and_save(
         read_options: dict[str, str],
         write_options: dict[str, str]
 ):
-    """This command decrypts your dataframe and saves it."""
+    """Decrypt provided file using various options and save it."""
     opt_read_params = {
         **read_options,
         **{
@@ -151,9 +147,12 @@ def decrypt(
         config_not_encrypted: bool,
         read_options: dict[str, str],
 ):
-    """Decrypts your file and prints it to the console for debugging purposes.
-       This command should only be used for getting familiar with output format.
-       Use decrypt-and-save to save encrypted data to disk."""
+    """
+    Decrypt the input file and print it to the console for debugging purposes.
+
+    This command should only be used for getting familiar with output format.
+    Use decrypt-and-save to save encrypted data to the disk.
+    """
     opt_read_params = {
         **read_options,
         **{
@@ -211,7 +210,7 @@ def encrypt_and_save(
         read_options: dict[str, str],
         write_options: dict[str, str]
 ):
-    """This command encrypts your dataframe and saves it."""
+    """Encrypt an input file and save it."""
     opt_read_params = {
         **read_options,
         **{key: val for key, val in {
@@ -257,9 +256,12 @@ def encrypt(
         log_level: str,
         read_options: dict[str, str],
 ):
-    """Encrypts your file and prints it to the console for debugging purposes.
-       This command should only be used for getting familiar with output format.
-       Use encrypt-and-save to save encrypted data to disk."""
+    """
+    Encrypt an input file and print it to the console for debugging purposes.
+
+    This command should only be used for getting familiar with output format.
+    Use encrypt-and-save to save encrypted data to disk.
+    """
     opt_read_params = {
         **read_options,
         **{key: val for key, val in {

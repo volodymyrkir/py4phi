@@ -1,4 +1,4 @@
-"""This module contains the model/folder encryption CLI commands."""
+"""Module containing the model/folder encryption CLI commands."""
 
 import click
 
@@ -13,6 +13,7 @@ from py4phi.dataset_handlers.base_dataset_handler import PathOrStr
 
 @click.group()
 def model_encryption_group():
+    """Model/Folder encryption CLI commands group."""
     pass
 
 
@@ -34,9 +35,7 @@ def encrypt_model(
         path: PathOrStr,
         disable_config_encryption: bool
 ):
-    """
-    This command is used to encrypt ML models, or other folders recursively.
-    """
+    """Encrypt ML models or other folders recursively."""
     enc_m(path, encrypt_config=not disable_config_encryption)
 
 
@@ -58,7 +57,5 @@ def decrypt_model(
         path: PathOrStr,
         config_not_encrypted: bool
 ):
-    """
-    This command is used to decrypt ML models, or other folders recursively.
-    """
+    """Decrypt ML models or other folders recursively."""
     dec_m(path, config_encrypted=not config_not_encrypted)

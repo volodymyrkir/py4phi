@@ -9,7 +9,6 @@ from py4phi.consts import PANDAS, POLARS, PYSPARK, DEFAULT_MODEL_KEY_PATH
 from py4phi.config_processor import ConfigProcessor
 from py4phi._encryption._model_encryptor import ModelEncryptor
 
-
 __all__ = ['from_path', 'from_dataframe', 'encrypt_model', 'decrypt_model',
            'PANDAS', 'POLARS', 'PYSPARK']
 
@@ -47,8 +46,8 @@ def from_path(
         raise KeyError(f"No such engine: {engine},"
                        f" could be one of {tuple(Controller.ENGINE_NAME_MAPPING)}")
     reader = reader_cls()
-    logger.info(f"Reading dataframe using {type(reader)} "
-                f"from file: {path}, of type {file_type}.")
+    logger.debug(f"Reading dataframe using {type(reader)} "
+                 f"from file: {path}, of type {file_type}.")
 
     reader.read_file(path=path, file_type=file_type, **kwargs)
 
