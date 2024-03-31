@@ -9,7 +9,8 @@ from cli.descriptions import (
     PATH_TO_INPUT_DESCRIPTION, PATH_TO_OUTPUT_DESCRIPTION,
     WRITE_OPTIONS, TARGET_FEATURE, COLUMNS_TO_IGNORE,
     SAVE_REDUCED, CUM_VAR_THRESHOLD, SAVE_FILE_TYPE,
-    FILE_TYPE_DESCRIPTION, ENGINE_TYPE, READ_OPTIONS, NULLS_MODE
+    FILE_TYPE_DESCRIPTION, ENGINE_TYPE, READ_OPTIONS,
+    NULLS_MODE, NUM_COMPONENTS
 )
 from py4phi.dataset_handlers.base_dataset_handler import PathOrStr
 
@@ -44,7 +45,7 @@ def pca_group():
               help=CUM_VAR_THRESHOLD,
               type=click.FLOAT)
 @click.option('--num_components',
-              help=CUM_VAR_THRESHOLD,
+              help=NUM_COMPONENTS,
               type=click.INT)
 @click.option('--nulls_mode',
               help=NULLS_MODE,
