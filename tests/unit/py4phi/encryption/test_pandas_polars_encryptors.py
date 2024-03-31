@@ -12,17 +12,18 @@ from py4phi._encryption._polars_encryptor import _PolarsEncryptor
 @pytest.fixture()
 def encryptor_pandas(mocker):
     df = mocker.MagicMock()
-    df.columns = ['col1']
+    df.columns = ['col1', 'col2']
     encryptor = _PandasEncryptor(df, ['col1'])
     encryptor._columns['col1']['key'] = 'bfe4b06b65c952b46fa6941bdc5d10b9'
     encryptor._columns['col1']['aad'] = 'e20bab5c86ef1f9f42b6d854f3968958'
+    df['col2'] = None
     return encryptor
 
 
 @pytest.fixture()
 def encryptor_polars(mocker):
     df = mocker.MagicMock()
-    df.columns = ['col1']
+    df.columns = ['col1', 'col2']
     encryptor = _PolarsEncryptor(df, ['col1'])
     encryptor._columns['col1']['key'] = 'bfe4b06b65c952b46fa6941bdc5d10b9'
     encryptor._columns['col1']['aad'] = 'e20bab5c86ef1f9f42b6d854f3968958'
@@ -49,12 +50,13 @@ def decrypted_df():
 
 
 @pytest.mark.parametrize('column, specific_encryptor', [
-    *product((None, 123, 'col5'), ('encryptor_pandas', 'encryptor_polars'))
+    *product((None, 123, 'col5', 'col2'),
+             ('encryptor_pandas', 'encryptor_polars'))
 ])
 def test_encrypt_column_wrong(column, specific_encryptor, request):
     specific_encryptor = request.getfixturevalue(specific_encryptor)
     with pytest.raises(ValueError):
-        specific_encryptor._encrypt_column('column')
+        specific_encryptor._encrypt_column(column)
 
 
 def test_encrypt_column_pandas(encryptor_pandas, decrypted_df, encrypted_df, mocker):
