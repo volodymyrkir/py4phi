@@ -336,6 +336,7 @@ class Controller:
             self,
             target_feature: str,
             drop_recommended: bool = False,
+            override_columns_to_drop: list[str] = None,
             target_correlation_threshold: Optional[float] = 0.5,
             features_correlation_threshold: Optional[float] = 0.5,
             save_format: Optional[str] = 'CSV',
@@ -357,6 +358,10 @@ class Controller:
         drop_recommended (bool): Whether to ONLY find potentially redundant columns.
                                     If set to True, will drop them from the dataset.
                                     Defaults to False.
+
+        override_columns_to_drop (list[str]): List of columns to be dropped.
+            If provided, no recommendations are taken into consideration,
+            i.e. only dropping specified columns. Defaults to None.
 
         target_correlation_threshold (Optional[float]): Sets correlation threshold
             while recommending features to be dropped based on correlational analysis
@@ -382,18 +387,19 @@ class Controller:
             target_feature
         )
         result = analyzer.correlation_analysis(
+            override_columns_to_drop=override_columns_to_drop,
             drop_recommended=drop_recommended,
             target_corr_threshold=target_correlation_threshold,
             feature_corr_threshold=features_correlation_threshold,
         )
 
-        # TODO move to separate ?
         if drop_recommended:
             logger.info('Finished feature selection process. '
                         f'Output dataset has {len(result.columns)} features in total.')
             handler = PandasDatasetHandler()
             save_location = os.path.join(CWD, save_folder)
             prepare_location(location=save_location)
+            logger.info(f'Saving reduced dataframe to {save_location}')
             handler.write(
                 result,
                 name=save_name,

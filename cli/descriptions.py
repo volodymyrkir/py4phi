@@ -58,3 +58,14 @@ NULLS_MODE = ('Nulls handle mode to be used for PCA null handling in the dataset
               ' and drop will drop all rows where column is null. '
               'Recommended modes is "fill" with a combination of data pre-processing, '
               'so that no data is lost by using mean.')
+
+SAVE_REDUCED_FEATURES = 'If enabled, will save dataset with reduced amount of features to the specified directory.'
+OVERRIDE_DROP_COLUMN = 'Override columns to be dropped. You can provide multiple values.'
+TARGET_COR_THRESHOLD = ('Sets correlation threshold when combining features and the target feature. '
+                        'By default, set to 0.5. Can be in range [0.0-1.0]. All features that have'
+                        ' correlation with the target feature less than the specified value,'
+                        ' will be recommended for dropping.')
+FEATURE_COR_THRESHOLD = ('Sets correlation threshold when combining features with each other. '
+                         'By default, set to 0.5. Can be in range [0.0-1.0]. All features that have'
+                         ' correlation with each other more than the specified value,'
+                         ' will be recommended for dropping.')

@@ -33,10 +33,11 @@ class FeatureSelection(Analytics):
         return np.sqrt(phi2corr / min((kcorr - 1), (rcorr - 1)))
 
     def correlation_analysis(
-        self,
-        target_corr_threshold,
-        feature_corr_threshold,
-        drop_recommended: bool,
+            self,
+            target_corr_threshold: float,
+            feature_corr_threshold: float,
+            override_columns_to_drop: list[str],
+            drop_recommended: bool,
     ) -> pd.DataFrame:
         """
         Perform correlation analysis using given target feature.
@@ -59,6 +60,11 @@ class FeatureSelection(Analytics):
         feature_corr_threshold (Optional[float]): Sets correlation threshold
             while recommending features to be dropped based on correlational analysis
             against each other. Can be 0.0-1.0.
+
+        override_columns_to_drop (list[str]): List of columns to be dropped.
+            If provided, no recommendations are taken into consideration,
+            i.e. only dropping specified columns.
+
         drop_recommended (bool): Whether to follow recommendations and drop features.
 
         Returns: (pd.DataFrame) The dataframe with
@@ -66,31 +72,34 @@ class FeatureSelection(Analytics):
 
         """
         df = self._df
+        target = df[self._target_column].copy()
         correlations = {}
+        if (
+                self._target_column
+                and not pd.api.types.is_numeric_dtype(target)
+        ):
+            target = target.astype('category').cat.codes
+
         for col in df.columns:
             if col != self._target_column:
                 if pd.api.types.is_numeric_dtype(df[col]):
-                    correlation = df[col].corr(df[self._target_column])
+                    correlation = df[col].corr(target)
                 else:
-                    confusion_matrix = pd.crosstab(df[col], df[self._target_column])
+                    confusion_matrix = pd.crosstab(df[col], target)
                     correlation = self.cramers_v(confusion_matrix)
-                correlations[col] = correlation
+                correlations[col] = correlation if not pd.isna(correlation) else .0
 
         logger.info("Correlations with the target feature:")
         for col, corr in correlations.items():
             logger.info(f'Feature {col}: {corr}')
-        low_correlation_features = [
+        dropping_recommendations = [
             col
             for col, corr in correlations.items()
             if abs(corr) < target_corr_threshold
         ]
 
         logger.info(f"Features with low correlation "
-                    f"with the target feature:{low_correlation_features}")
-
-        if drop_recommended:
-            logger.info("Dropping low correlation features listed above.")
-            df = df.drop(low_correlation_features, axis=1)
+                    f"with the target feature:{dropping_recommendations}")
 
         correlation_matrix_numeric = df.select_dtypes(
             include=['float64', 'int64']
@@ -98,39 +107,50 @@ class FeatureSelection(Analytics):
         correlation_matrix_categorical = df.select_dtypes(include='object').apply(
             lambda x: x.astype('category').cat.codes
         ).corr().abs()
-
-        categorical_features_to_drop = self.find_correlated_pairs(
-            correlation_matrix_categorical, feature_corr_threshold
+        logger.info("Finding highly correlated features...")
+        dropping_recommendations = self.find_correlated_pairs(
+            dropping_recommendations,
+            correlation_matrix_categorical,
+            feature_corr_threshold
         )
-        numeric_features_to_drop = self.find_correlated_pairs(
-            correlation_matrix_numeric, feature_corr_threshold
+        dropping_recommendations = self.find_correlated_pairs(
+            dropping_recommendations,
+            correlation_matrix_numeric,
+            feature_corr_threshold
         )
 
-        features_to_drop = numeric_features_to_drop.union(
-            categorical_features_to_drop
-        )
-        logger.info(f"Features to drop (keeping one from each pair): "
-                    f"{features_to_drop}")
-
-        if drop_recommended:
-            df = df.drop(features_to_drop, axis=1)
+        logger.info(f"Total recommended features to drop: "
+                    f"{dropping_recommendations}")
+        logger.info(f"Features that will be left after dropping: "
+                    f"{set(df.columns).difference(dropping_recommendations)}")
+        if override_columns_to_drop:
+            logger.info(f"Ignoring recommendations "
+                        f"and dropping following columns: {override_columns_to_drop}.")
+            df = df.drop(list(override_columns_to_drop), axis=1)
+        elif drop_recommended:
+            df = df.drop(dropping_recommendations, axis=1)
         return df
 
     @staticmethod
     def find_correlated_pairs(
-            correlation_matrix,
+            current_recommendations: list[str],
+            correlation_matrix: pd.DataFrame,
             features_corr_threshold: float
-    ) -> set[str]:
+    ) -> list[str]:
         """
-        Given correlation matrix, find highly correlated features.
+        Find highly correlated features.
+
+        Given correlation matrix, find and add them to the dropping recommendation list.
 
         Args:
         ----
-        correlation_matrix (#TODO): Correlation matrix of features.
+        current_recommendations (list[str]): List of features
+                                                to be recommended for dropping.
+        correlation_matrix (pd.DataFrame): Correlation matrix of features.
         features_corr_threshold (Optional[float]): Sets correlation threshold
             while finding highly correlated features.
 
-        Returns: (set[str]) The set of features found.
+        Returns: (list[str]) The modified recommendations list.
 
         """
         highly_correlated_indices = np.where(
@@ -138,17 +158,19 @@ class FeatureSelection(Analytics):
         )
         highly_correlated_pairs = [
             (correlation_matrix.index[i],
-             correlation_matrix.columns[j])
+             correlation_matrix.columns[j],
+             correlation_matrix.iloc[i, j])
             for i, j in zip(*highly_correlated_indices) if i < j
         ]
-        features_to_drop = set()
-        for feature1, feature2 in highly_correlated_pairs:
-            if feature1 not in features_to_drop:
-                features_to_drop.add(feature2)
-        logger.info("Highly correlated numeric features:")
-        for feature1, feature2 in highly_correlated_pairs:
-            logger.info(f"'{feature1}' is highly correlated with '{feature2}'.")
-        return features_to_drop
 
-
-
+        for feature1, feature2, corr_value in highly_correlated_pairs:
+            if (feature1 not in current_recommendations
+                    and feature2 not in current_recommendations):
+                current_recommendations.append(feature2)
+                logger.info(
+                    f"'{feature1}' is highly correlated with '{feature2}' "
+                    f"(correlation: {corr_value:.4f})."
+                    f"\nAdding {feature1} to the drop recommendations."
+                    f"You can provide {feature1} to the 'override_columns_to_drop' "
+                    "parameter to override recommendations.")
+        return current_recommendations

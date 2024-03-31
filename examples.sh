@@ -46,6 +46,15 @@ py4phi perform-pca -i ../py4phi/Titanic.parquet  -t parquet --target Embarked -c
 # Only perform analysis without saving the outputs
 py4phi perform-pca -i ../py4phi/dataset.csv  --target 'Staff involved' -c ACF
 
+# Perform feature selection (only analyze correlations)
+py4phi feature-selection -i ../py4phi/Titanic.parquet --target Survived --target_corr_threshold 0.3 --feature_corr_threshold 0.55
+
+# Perform feature selection and save outputs without a pandas index into the current directory.
+py4phi feature-selection -i ../py4phi/Titanic.parquet --target Survived --target_corr_threshold 0.05 --feature_corr_threshold 0.52 --save_reduced -w index false
+
+# Ignore feature selection recommendations and drop columns Pclass, Name, PassengerId, save to the current directory.
+py4phi feature-selection -i ../py4phi/Titanic.parquet --target Survived -c Pclass -c Name -c PassengerId --save_reduced -w index false
+
 
 
 
