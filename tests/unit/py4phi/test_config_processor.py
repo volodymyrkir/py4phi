@@ -100,3 +100,18 @@ def test_read_config(processor, tmp_path, encrypt):
     )
     assert res == columns_dict
 
+
+def test_read_config_encrypted_wrong(processor, tmp_path):
+    columns_dict = {
+        'col1': {'key': 'val'},
+        'col2': {'aad': 'val'}
+    }
+    processor.save_config(
+        columns_dict, tmp_path,
+        encrypt_config=True, conf_file_name=NAME_C, key_file_name=NAME_K
+    )
+    with pytest.raises(ValueError):
+        processor.read_config(
+            tmp_path,
+            config_encrypted=False, conf_file_name=NAME_C, key_file_name=NAME_K
+        )

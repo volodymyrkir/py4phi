@@ -1,5 +1,6 @@
 """Contains tests for the pyspark writing utility functions."""
 import os
+import shutil
 
 import pytest
 from py4j.java_gateway import JavaObject, JavaPackage
@@ -21,8 +22,10 @@ def test_configure_hadoop(spark_session):
 
 
 def test_ensure_exists(spark_session, tmp_path):
-    ensure_exists(spark_session, str(tmp_path))
-    assert os.path.exists(str(tmp_path))
+    file = str(tmp_path / "file.csv")
+    shutil.rmtree(file, ignore_errors=True)
+    ensure_exists(spark_session, file)
+    assert os.path.exists(file)
 
 
 def test_delete_location(spark_session, tmp_path):
@@ -43,21 +46,29 @@ def test_get_files(spark_session, tmp_path):
 
 
 @pytest.mark.parametrize('delete_source', [True, False])
-def test_copy_merge_into(spark_session, tmp_path_factory, delete_source):
+def test_copy_merge_into_existing_file(spark_session, tmp_path_factory, delete_source):
     tmp_path = tmp_path_factory.mktemp('files1')
     tmp_path2 = tmp_path_factory.mktemp('files2')
+
+    with open(tmp_path2 / 'res_file.csv', 'w') as f:
+        f.write('existing data')
+
     for file in ['file1.txt', 'file2.txt']:
-        f = open(tmp_path / file, 'w')
-        f.write('hello')
+        with open(tmp_path / file, 'w') as f:
+            f.write('hello')
+
     copy_merge_into(
         spark_session,
         str(tmp_path),
         str(tmp_path2 / 'res_file.csv'),
         delete_source
     )
+
     exist_condition_met = (
         not os.path.exists(tmp_path)
         if delete_source else os.path.exists(tmp_path)
     )
+
     assert exist_condition_met
     assert os.path.exists(str(tmp_path2 / 'res_file.csv'))
+

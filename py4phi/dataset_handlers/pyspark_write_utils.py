@@ -36,8 +36,7 @@ def ensure_exists(spark: SparkSession, file: str) -> None:
     """
     hadoop, _, fs = configure_hadoop(spark)
     if not fs.exists(hadoop.fs.Path(file)):
-        out_stream = fs.create(hadoop.fs.Path(file, False))
-        out_stream.close()
+        fs.create(hadoop.fs.Path(file)).close()
 
 
 def delete_location(spark: SparkSession, location: str) -> None:
@@ -99,11 +98,8 @@ def copy_merge_into(
     """
     hadoop, conf, fs = configure_hadoop(spark)
 
-    # 1. Get list of files in the source directory
     files = get_files(spark, src_dir)
 
-    # 2. Set up the 'output stream' for the final merged output file
-    # if destination file already exists, add contents of that file to the output stream
     if fs.exists(hadoop.fs.Path(dst_file)):
         tmp_dst_file = dst_file + ".tmp"
         tmp_in_stream = fs.open(hadoop.fs.Path(dst_file))
@@ -111,7 +107,7 @@ def copy_merge_into(
         try:
             hadoop.io.IOUtils.copyBytes(
                 tmp_in_stream, tmp_out_stream, conf, False
-            )  # False means don't close out_stream
+            )
         finally:
             tmp_in_stream.close()
             tmp_out_stream.close()
@@ -123,23 +119,20 @@ def copy_merge_into(
         finally:
             tmp_in_stream.close()
             fs.delete(hadoop.fs.Path(tmp_dst_file), False)
-    # if file doesn't already exist, create a new empty file
     else:
         out_stream = fs.create(hadoop.fs.Path(dst_file), False)
 
-    # 3. Merge files from source directory into the merged file 'output stream'
     try:
         for file in files:
             in_stream = fs.open(file)
             try:
                 hadoop.io.IOUtils.copyBytes(
                     in_stream, out_stream, conf, False
-                )  # False means don't close out_stream
+                )
             finally:
                 in_stream.close()
     finally:
         out_stream.close()
 
-    # 4. Tidy up - delete the original source directory
     if delete_source:
         delete_location(spark, src_dir)

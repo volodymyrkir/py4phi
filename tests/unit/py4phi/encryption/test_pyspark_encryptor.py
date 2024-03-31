@@ -10,7 +10,7 @@ from py4phi._encryption._pyspark_encryptor import _PySparkEncryptor
 @pytest.fixture()
 def encryptor(mocker):
     df = mocker.MagicMock()
-    df.columns = ['col1']
+    df.columns = ['col1', 'col2']
     return _PySparkEncryptor(df, ['col1'])
 
 
@@ -70,7 +70,7 @@ def test_decrypt_column(encryptor, raw_df, expected_df):
     assert decrypted_df.select('col1').collect() == expected_df.select('col1').collect()
 
 
-@pytest.mark.parametrize('column', [None, 123, 'col2'])
+@pytest.mark.parametrize('column', [None, 123, 'col3'])
 def test_decrypt_column_wrong(encryptor, column, mocker):
     with pytest.raises(ValueError):
         encryptor._decrypt_column(column, mocker.MagicMock())
