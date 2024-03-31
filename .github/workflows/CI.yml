@@ -27,4 +27,5 @@ jobs:
         ruff check --config ruff-test.toml tests/
     - name: Run tests
       run: |
+        pip install setuptools
         pytest ./tests/ --log-disable py4phi_logger --cov
