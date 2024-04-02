@@ -1,0 +1,6 @@
+[report]
+show_missing=true
+exclude_also =
+    def _read_*
+    def _write_*
+    @(abc\.)?abstractmethod

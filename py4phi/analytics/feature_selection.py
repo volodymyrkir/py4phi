@@ -71,13 +71,10 @@ class FeatureSelection(Analytics):
          either dropped features or original dataframe.
 
         """
-        df = self._df
-        target = df[self._target_column].copy()
+        df = self._df.drop(self._target_column, axis=1)
+        target = self._df[self._target_column].copy()
         correlations = {}
-        if (
-                self._target_column
-                and not pd.api.types.is_numeric_dtype(target)
-        ):
+        if not pd.api.types.is_numeric_dtype(target):
             target = target.astype('category').cat.codes
 
         for col in df.columns:
@@ -100,13 +97,15 @@ class FeatureSelection(Analytics):
 
         logger.info(f"Features with low correlation "
                     f"with the target feature:{dropping_recommendations}")
-
         correlation_matrix_numeric = df.select_dtypes(
             include=['float64', 'int64']
         ).corr().abs()
-        correlation_matrix_categorical = df.select_dtypes(include='object').apply(
-            lambda x: x.astype('category').cat.codes
-        ).corr().abs()
+
+        correlation_matrix_categorical = (
+            df.select_dtypes(include='object').apply(
+                lambda x: x.astype('category').cat.codes
+            ).corr().abs()
+        )
         logger.info("Finding highly correlated features...")
         dropping_recommendations = self.find_correlated_pairs(
             dropping_recommendations,
@@ -121,15 +120,15 @@ class FeatureSelection(Analytics):
 
         logger.info(f"Total recommended features to drop: "
                     f"{dropping_recommendations}")
+        features_left = set(self._df.columns).difference(dropping_recommendations)
         logger.info(f"Features that will be left after dropping: "
-                    f"{set(df.columns).difference(dropping_recommendations)}")
+                    f"{features_left}")
         if override_columns_to_drop:
             logger.info(f"Ignoring recommendations "
                         f"and dropping following columns: {override_columns_to_drop}.")
-            df = df.drop(list(override_columns_to_drop), axis=1)
+            return self._df.drop(list(override_columns_to_drop), axis=1)
         elif drop_recommended:
-            df = df.drop(dropping_recommendations, axis=1)
-        return df
+            return self._df.drop(dropping_recommendations, axis=1)
 
     @staticmethod
     def find_correlated_pairs(
@@ -170,7 +169,7 @@ class FeatureSelection(Analytics):
                 logger.info(
                     f"'{feature1}' is highly correlated with '{feature2}' "
                     f"(correlation: {corr_value:.4f})."
-                    f"\nAdding {feature1} to the drop recommendations."
+                    f"\nAdding {feature2} to the drop recommendations."
                     f"You can provide {feature1} to the 'override_columns_to_drop' "
                     "parameter to override recommendations.")
         return current_recommendations

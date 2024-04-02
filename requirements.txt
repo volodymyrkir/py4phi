@@ -11,3 +11,4 @@ polars==0.20.9
 click==8.1.7
 scikit-learn==1.4.1.post1
 scipy==1.12.0
+setuptools==69.1.0

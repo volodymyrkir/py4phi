@@ -1,4 +1,5 @@
 """Contains tests for the PolarsDatasetHandler class."""
+import pandas as pd
 import pytest
 from polars import DataFrame
 
@@ -59,3 +60,13 @@ def test_print_raise(handler, mocker):
     df = mocker.MagicMock()
     with pytest.raises(ValueError):
         handler.print_df(df)
+
+
+def test_to_pandas(handler):
+    handler._df = DataFrame({
+        'col1': [1, 2, 3]
+    })
+    result = handler.to_pandas()
+
+    assert isinstance(result, pd.DataFrame)
+    pd.testing.assert_frame_equal(result, pd.DataFrame.from_dict({'col1': [1, 2, 3]}))
