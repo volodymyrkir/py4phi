@@ -1,8 +1,8 @@
 import re
 
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 
 from py4phi.analytics.principal_component_analysis import PrincipalComponentAnalysis
 
@@ -92,7 +92,10 @@ def test_component_analysis_provided_too_many_components(mocker, pca_obj):
     mock_scaler = mocker.patch.object(pca_obj, 'scaler')
 
     with pytest.raises(ValueError):
-        pca_obj.component_analysis(ignore_columns=['col2'], n_components=len(pca_obj._df))
+        pca_obj.component_analysis(
+            ignore_columns=['col2'],
+            n_components=len(pca_obj._df)
+        )
     assert mock_scaler.fit_transform.called
 
 
@@ -101,9 +104,13 @@ def test_component_analysis_provided_too_many_components(mocker, pca_obj):
 ])
 def test_component_analysis_no_reduce(mocker, pca_obj, threshold):
     mock_logger = mocker.patch('py4phi.analytics.principal_component_analysis.logger')
-    result = pca_obj.component_analysis(rec_threshold=threshold, ignore_columns=['col2'])
+    result = pca_obj.component_analysis(
+        rec_threshold=threshold,
+        ignore_columns=['col2']
+    )
     last_log = mock_logger.info.call_args_list[-1][0][0]
-    pattern = r'Explained variance suggests keeping at least (\d+) components \((\d+\.\d+% cumulative variance)\)\.'
+    pattern = (r'Explained variance suggests keeping at least (\d+) components '
+               r'\((\d+\.\d+% cumulative variance)\)\.')
 
     assert result is None
     assert re.fullmatch(pattern, last_log)
