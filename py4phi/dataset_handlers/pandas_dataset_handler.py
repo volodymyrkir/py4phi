@@ -1,6 +1,5 @@
 """Module for reading file or dataframe by Pandas."""
 import os
-from typing import override
 
 import pandas as pd
 
@@ -20,7 +19,6 @@ class PandasDatasetHandler(BaseDatasetHandler):
         return self._df
 
     @staticmethod
-    @override
     def print_df(df: pd.DataFrame) -> None:
         """
         Print PySpark dataframe.
@@ -37,7 +35,6 @@ class PandasDatasetHandler(BaseDatasetHandler):
         pd.set_option('display.max_columns', None)
         print(df.head(30))
 
-    @override
     def _read_csv(self, path: PathOrStr, **kwargs) -> pd.DataFrame:
         """
         Read csv file with Pandas.
@@ -54,7 +51,6 @@ class PandasDatasetHandler(BaseDatasetHandler):
         """
         return pd.read_csv(path, engine='pyarrow', dtype_backend='pyarrow', **kwargs)
 
-    @override
     def _read_parquet(self, path: PathOrStr, **kwargs) -> pd.DataFrame:
         """
         Read parquet file with Pandas.
@@ -75,7 +71,6 @@ class PandasDatasetHandler(BaseDatasetHandler):
             **kwargs
         )
 
-    @override
     def _write_csv(
             self,
             df: pd.DataFrame,
@@ -100,7 +95,6 @@ class PandasDatasetHandler(BaseDatasetHandler):
 
         df.to_csv(os.path.join(path, name + suffix), **kwargs)
 
-    @override
     def _write_parquet(
             self,
             df: pd.DataFrame,

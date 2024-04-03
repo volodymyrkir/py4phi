@@ -1,6 +1,4 @@
 """Contains logic for _encryption and decryption."""
-from typing import override
-
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as f, types as t
 
@@ -10,7 +8,6 @@ from py4phi._encryption._encryptor import _BaseEncryptor
 class _PySparkEncryptor(_BaseEncryptor):
     """Encryptor class, includes _encryption and decryption logic."""
 
-    @override
     def _encrypt_column(self, column: str) -> DataFrame:
         """
         Encrypt dataframe column.
@@ -39,7 +36,6 @@ class _PySparkEncryptor(_BaseEncryptor):
                             )
                 )
 
-    @override
     def _decrypt_column(
             self,
             column: str,

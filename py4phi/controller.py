@@ -223,7 +223,7 @@ class Controller:
                         f'{columns_to_decrypt}. ')
             try:
                 logger.info(f'Config path is {configs_path}. '
-                            f'{'Config is encrypted' if config_encrypted else ''}')
+                            f"{'Config is encrypted' if config_encrypted else ''}")
                 decryption_dict = self._config_processor.read_config(
                     configs_path,
                     conf_file_name=config_file_name,

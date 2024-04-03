@@ -63,7 +63,7 @@ class ConfigProcessor:
         for column_name, params_dict in columns.items():
             config[column_name] = params_dict
         logger.debug(f'Writing decryption config to {path}.'
-                     f'{'Config will be encrypted' if encrypt_config else ''}')
+                     f"{'Config will be encrypted' if encrypt_config else ''}")
         shutil.rmtree(path, ignore_errors=True)
         os.makedirs(path, exist_ok=True)
         if encrypt_config:
@@ -100,9 +100,12 @@ class ConfigProcessor:
 
         """
         config = ConfigParserCrypt()
+        additional_message = (
+            f"Config is encrypted, key file name {key_file_name}"
+            if config_encrypted else ''
+        )
         logger.debug(f'Reading decryption config from {path}. '
-                     f'{'Config is encrypted, key file name '
-                         + key_file_name if config_encrypted else ''}')
+                     + additional_message)
         if config_encrypted:
             key = self.__read_key(os.path.join(path, key_file_name))
             config.aes_key = key
