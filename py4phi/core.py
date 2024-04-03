@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from logging import INFO
 
-from py4phi.controller import Controller
+from py4phi.controller import Controller, ENGINE_NAME_MAPPING, HANDLERS_TYPE_MAPPING
 from py4phi.logger_setup import logger
 from py4phi.consts import PANDAS, POLARS, PYSPARK, DEFAULT_MODEL_KEY_PATH
 from py4phi.config_processor import ConfigProcessor
@@ -37,14 +37,16 @@ def from_path(
     kwargs (dict): Optional keyword arguments to pass to reading method.
 
     Returns: Controller object.
+
+    Raises: ValueError if specified engine is not supported.
     """
     logger.setLevel(log_level)
 
     logger.debug("Initializing Dataset Handler")
-    reader_cls = Controller.ENGINE_NAME_MAPPING.get(engine)
+    reader_cls = ENGINE_NAME_MAPPING.get(engine)
     if not reader_cls:
-        raise KeyError(f"No such engine: {engine},"
-                       f" could be one of {tuple(Controller.ENGINE_NAME_MAPPING)}")
+        raise ValueError(f"No such engine: {engine}, "
+                         f"can be one of {tuple(ENGINE_NAME_MAPPING)}")
     reader = reader_cls()
     logger.debug(f"Reading dataframe using {type(reader)} "
                  f"from file: {path}, of type {file_type}.")
@@ -69,9 +71,9 @@ def from_dataframe(df, log_level: str | int = INFO) -> Controller:
     """
     logger.setLevel(log_level)
 
-    if type(df) not in Controller.HANDLERS_TYPE_MAPPING.keys():
+    if type(df) not in HANDLERS_TYPE_MAPPING:
         raise ValueError(f'Unsupported object of type {type(df)}.')
-    handler = Controller.HANDLERS_TYPE_MAPPING[type(df)]()
+    handler = HANDLERS_TYPE_MAPPING[type(df)]()
 
     logger.debug(f"Using {type(handler)} dataset handler")
     logger.info(f"Reading dataframe of type {type(df)}.")
@@ -96,8 +98,6 @@ def encrypt_model(
     encrypt_config (bool, optional): Whether to encrypt config additionally.
                                       Defaults to True.
 
-    Returns: None.
-
     """
     config_processor = ConfigProcessor()
     conf_dict = ModelEncryptor.encrypt_folder(path)
@@ -120,8 +120,6 @@ def decrypt_model(
     path (os.PathLike): Path to the directory with model components.
     config_encrypted (bool, optional): Whether the config is encrypted additionally.
                                       Defaults to True.
-
-    Returns: None.
 
     """
     config_processor = ConfigProcessor()

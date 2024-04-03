@@ -29,21 +29,21 @@ from py4phi.consts import (
     DEFAULT_FEATURE_SELECTION_OUTPUTS_NAME, PANDAS, PYSPARK, POLARS,
 )
 
+ENGINE_NAME_MAPPING = {
+    PYSPARK: PySparkDatasetHandler,
+    PANDAS: PandasDatasetHandler,
+    POLARS: PolarsDatasetHandler
+}
+
+HANDLERS_TYPE_MAPPING = {
+    DataFrame: PySparkDatasetHandler,
+    pd.DataFrame: PandasDatasetHandler,
+    pl.DataFrame: PolarsDatasetHandler
+}
+
 
 class Controller:
     """Class to interact with py4phi components."""
-
-    HANDLERS_TYPE_MAPPING = {
-        DataFrame: PySparkDatasetHandler,
-        pd.DataFrame: PandasDatasetHandler,
-        pl.DataFrame: PolarsDatasetHandler
-    }
-
-    ENGINE_NAME_MAPPING = {
-        PYSPARK: PySparkDatasetHandler,
-        PANDAS: PandasDatasetHandler,
-        POLARS: PolarsDatasetHandler
-    }
 
     ENCRYPTION_MAPPING: dict[Type[BaseDatasetHandler], Type[_BaseEncryptor]] = {
         PySparkDatasetHandler: _PySparkEncryptor,
@@ -62,13 +62,8 @@ class Controller:
         self._config_processor = ConfigProcessor()
 
     def print_current_df(self) -> None:
-        """
-        Print dataframe of current state.
-
-        Returns: None
-
-        """
-        logger.info('Printing active dataframe.')
+        """Print dataframe of current state."""
+        logger.info('Printing current dataframe.')
         self._dataset_handler.print_df(self._current_df)
 
     def encrypt(
@@ -82,7 +77,7 @@ class Controller:
         ----
         columns_to_encrypt (list[str]): List of columns to be encrypted.
 
-        Returns: None.
+        Returns: (BaseDF) An encrypted dataframe.
 
         """
         self.__encryptor = (
@@ -122,7 +117,9 @@ class Controller:
                                 Defaults to DEFAULT_SECRET_NAME.
         kwargs (dict, optional): keyword arguments to be supplied to dataframe writing.
 
-        Returns: None.
+        Raises:
+        ------
+        ValueError: If dataset is being saved without preliminary encryption.
 
         """
         if not self._encrypted:
@@ -130,7 +127,7 @@ class Controller:
             raise ValueError('No encryption action taken!')
 
         save_location = os.path.join(save_location, DEFAULT_PY4PHI_ENCRYPTED_NAME)
-        logger.debug(f'Successfully prepared save location: {save_location}.')
+        prepare_location(location=save_location)
 
         self._config_processor.save_config(
             self.__columns_data,
@@ -166,8 +163,6 @@ class Controller:
         save_location (str, optional): Folder location to save all the outputs.
         save_format (str, optional): Format to save file. Defaults to 'csv'.
         kwargs (dict, optional): keyword arguments to be supplied to dataframe writing.
-
-        Returns: None.
 
         """
         save_location = os.path.join(save_location,
@@ -227,24 +222,23 @@ class Controller:
             logger.info(f'Kicking off decryption on current dataframe on columns: '
                         f'{columns_to_decrypt}. ')
             try:
-                path = os.path.join(configs_path, DEFAULT_PY4PHI_ENCRYPTED_NAME)
-                logger.info(f'Config path is {path}. '
+                logger.info(f'Config path is {configs_path}. '
                             f'{'Config is encrypted' if config_encrypted else ''}')
                 decryption_dict = self._config_processor.read_config(
-                    path,
+                    configs_path,
                     conf_file_name=config_file_name,
                     config_encrypted=config_encrypted,
                     key_file_name=key_file_name
                 )
             except FileNotFoundError:
                 raise FileNotFoundError(
-                    f"Decryption config files not found under {path}. "
+                    f"Decryption config files not found under {configs_path}. "
                 )
 
         self._current_df = self.__encryptor.decrypt(decryption_dict)
         self._decrypted = True
         logger.info('Successfully decrypted current df.')
-        return self._decrypted
+        return self._current_df
 
     def perform_pca(
             self,
@@ -255,7 +249,7 @@ class Controller:
             n_components: Optional[int] = None,
             nulls_mode: str = 'fill',
             save_format: Optional[str] = 'CSV',
-            save_folder: str = DEFAULT_PCA_REDUCED_FOLDER_NAME,
+            save_folder: str = CWD,
             save_name: str = DEFAULT_PCA_OUTPUT_NAME,
             **kwargs
     ) -> None:
@@ -340,8 +334,8 @@ class Controller:
             target_correlation_threshold: Optional[float] = 0.5,
             features_correlation_threshold: Optional[float] = 0.5,
             save_format: Optional[str] = 'CSV',
-            save_folder: str = DEFAULT_FEATURE_SELECTION_OUTPUTS_NAME,
-            save_name: str = DEFAULT_FEATURE_SELECTION_FOLDER_NAME,
+            save_folder: str = CWD,
+            save_name: str = DEFAULT_FEATURE_SELECTION_OUTPUTS_NAME,
             **kwargs
     ) -> None:
         """
@@ -397,7 +391,9 @@ class Controller:
             logger.info('Finished feature selection process. '
                         f'Output dataset has {len(result.columns)} features in total.')
             handler = PandasDatasetHandler()
-            save_location = os.path.join(CWD, save_folder)
+            save_location = os.path.join(
+                save_folder, DEFAULT_FEATURE_SELECTION_FOLDER_NAME
+            )
             prepare_location(location=save_location)
             logger.info(f'Saving reduced dataframe to {save_location}')
             handler.write(
