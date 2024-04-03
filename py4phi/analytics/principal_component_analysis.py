@@ -34,7 +34,7 @@ class PrincipalComponentAnalysis(Analytics):
         Returns: (pd.DataFrame) A dataframe without NA values.
         """
         if mode == 'fill':
-            for column in df.columns:
+            for column in [col for col in df.columns if col != self._target_column]:
                 if self._target_column:
                     logger.info(f'Filling empty values for column {column} '
                                 'with mean based on target feature.')
@@ -90,7 +90,9 @@ class PrincipalComponentAnalysis(Analytics):
         TypeError: If the input df contains non-numeric columns.
         ValueError: If n_components parameter is provided,
                         and it is more than current number of features.
-
+                        OR
+                    If provided dataframe is empty, considering all columns,
+                        except for target and ignored columns.
         """
         features = self._df
         columns_to_drop = [self._target_column] if self._target_column else []

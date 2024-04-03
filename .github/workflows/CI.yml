@@ -17,7 +17,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements-test.txt
+        pip install -r requirements.txt -r requirements-test.txt
     - name: Analyze the code with ruff
       run: |
         ruff check py4phi/
@@ -27,5 +27,4 @@ jobs:
         ruff check --config ruff-test.toml tests/
     - name: Run tests
       run: |
-        pip install setuptools
-        pytest ./tests/ --log-disable py4phi_logger --cov
+        pytest ./tests/ --log-disable py4phi_logger --cov=./py4phi/ --cov-fail-under=90
