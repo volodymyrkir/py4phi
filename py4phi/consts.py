@@ -14,7 +14,7 @@ CWD = os.getcwd()
 
 DEFAULT_MODEL_KEY_PATH = 'py4phi_model_decryption'
 
-TMP_OUTPUT_DIR = "tmp-spark"
+TMP_OUTPUT_DIR = "tmp-spark-py4phi"
 
 PYSPARK = 'pyspark'
 POLARS = 'polars'
