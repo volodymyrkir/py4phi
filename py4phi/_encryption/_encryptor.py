@@ -1,6 +1,6 @@
 """Contains logic for _encryption and decryption."""
 from abc import ABC, abstractmethod
-from typing import Generic, Dict
+from typing import Generic, Dict, Union
 from secrets import token_hex
 from base64 import b64encode, b64decode
 
@@ -10,7 +10,7 @@ from Crypto.Util.Padding import pad, unpad
 from py4phi.logger_setup import logger
 from py4phi.utils import DataFrame
 
-type ColumnsDict = Dict[str, dict[str, None | str]]
+ColumnsDict = Dict[str, Dict[str, Union[None, str]]]
 
 
 class _BaseEncryptor(ABC, Generic[DataFrame]):

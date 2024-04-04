@@ -1,6 +1,5 @@
 """Module for reading file or dataframe by Polars."""
 import os
-from typing import override
 
 import pandas as pd
 import polars as pl
@@ -21,7 +20,6 @@ class PolarsDatasetHandler(BaseDatasetHandler):
         return self._df.to_pandas()
 
     @staticmethod
-    @override
     def print_df(df: pl.DataFrame) -> None:
         """
         Print PySpark dataframe.
@@ -38,7 +36,6 @@ class PolarsDatasetHandler(BaseDatasetHandler):
         with pl.Config(tbl_cols=df.width, fmt_str_lengths=1000, tbl_width_chars=1000):
             print(df.head(30))
 
-    @override
     def _read_csv(self, path: PathOrStr, **kwargs) -> pl.DataFrame:
         """
         Read csv file with Polars.
@@ -55,7 +52,6 @@ class PolarsDatasetHandler(BaseDatasetHandler):
         """
         return pl.read_csv(path, **kwargs)
 
-    @override
     def _read_parquet(self, path: PathOrStr, **kwargs) -> pl.DataFrame:
         """
         Read parquet file with Polars.
@@ -74,7 +70,6 @@ class PolarsDatasetHandler(BaseDatasetHandler):
             **kwargs
         )
 
-    @override
     def _write_csv(
             self,
             df: pl.DataFrame,
@@ -99,7 +94,6 @@ class PolarsDatasetHandler(BaseDatasetHandler):
 
         df.write_csv(os.path.join(path, name + suffix), **kwargs)
 
-    @override
     def _write_parquet(
             self,
             df: pl.DataFrame,

@@ -71,7 +71,7 @@ def test_encrypt_model(tmp_path, encrypt_config, expected_files):
     folder = tmp_path / "test_folder"
     folder.mkdir()
     encrypt_model(folder, encrypt_config=encrypt_config)
-    assert os.listdir(tmp_path / DEFAULT_MODEL_KEY_PATH) == expected_files
+    assert set(os.listdir(tmp_path / DEFAULT_MODEL_KEY_PATH)) == set(expected_files)
 
 
 def test_decrypt_model_successful(mocker):

@@ -1,6 +1,4 @@
 """Contains logic for encryption and decryption using Polars."""
-from typing import override
-
 import polars as pl
 
 from py4phi._encryption._encryptor import _BaseEncryptor
@@ -9,7 +7,6 @@ from py4phi._encryption._encryptor import _BaseEncryptor
 class _PolarsEncryptor(_BaseEncryptor):
     """Encryptor class, includes _encryption and decryption logic."""
 
-    @override
     def _encrypt_column(self, column: str) -> pl.DataFrame:
         """
         Encrypt dataframe column.
@@ -37,7 +34,6 @@ class _PolarsEncryptor(_BaseEncryptor):
             ]
         )
 
-    @override
     def _decrypt_column(
             self,
             column: str,

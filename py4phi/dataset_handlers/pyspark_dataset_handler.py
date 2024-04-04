@@ -1,6 +1,5 @@
 """Module for reading file or dataframe by PySpark."""
 import os
-from typing import override
 from importlib.resources import files
 
 import pandas as pd
@@ -10,8 +9,6 @@ import py4phi
 from py4phi.dataset_handlers.base_dataset_handler import BaseDatasetHandler, PathOrStr
 from py4phi.dataset_handlers.pyspark_write_utils import copy_merge_into
 from py4phi.consts import TMP_OUTPUT_DIR
-
-# TODO ADD CUSTOM EXCEPTIONS, ADD FILE FORMATS SUPPORT, ADD TESTS
 
 
 class PySparkDatasetHandler(BaseDatasetHandler):
@@ -28,7 +25,6 @@ class PySparkDatasetHandler(BaseDatasetHandler):
         )
 
     @staticmethod
-    @override
     def print_df(df: DataFrame) -> None:
         """
         Print PySpark dataframe.
@@ -44,7 +40,6 @@ class PySparkDatasetHandler(BaseDatasetHandler):
             raise ValueError('Non-PySpark DataFrame passed to PySparkDatasetHandler')
         df.show()
 
-    @override
     def _read_csv(self, path: PathOrStr, **kwargs) -> DataFrame:
         """
         Read csv file with PySpark.
@@ -61,7 +56,6 @@ class PySparkDatasetHandler(BaseDatasetHandler):
         """
         return self._spark.read.csv(path, multiLine=True, **kwargs)
 
-    @override
     def _read_parquet(self, path: PathOrStr, **kwargs) -> DataFrame:
         """
         Read parquet file with PySpark.
@@ -77,7 +71,6 @@ class PySparkDatasetHandler(BaseDatasetHandler):
         """
         return self._spark.read.parquet(path, **kwargs)
 
-    @override
     def _write_csv(self, df: DataFrame, name: str, path: PathOrStr, **kwargs) -> None:
         """
         Write csv file with PySpark.
@@ -117,7 +110,6 @@ class PySparkDatasetHandler(BaseDatasetHandler):
             delete_source=True,
         )
 
-    @override
     def _write_parquet(
             self,
             df: DataFrame,
@@ -148,7 +140,6 @@ class PySparkDatasetHandler(BaseDatasetHandler):
             delete_source=True,
         )
 
-    @override
     def to_pandas(self) -> pd.DataFrame:
         """
         Cast current dataframe to pandas dataframe.
