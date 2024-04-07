@@ -7,6 +7,7 @@ In the modern IT world, sharing a dataset with sensitive data is common, especia
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/py4phi)
 [![image](https://img.shields.io/pypi/v/py4phi.svg)](https://pypi.python.org/pypi/py4phi)
 [![image](https://img.shields.io/pypi/l/py4phi.svg)](https://pypi.python.org/pypi/py4phi)
+[![image](https://img.shields.io/pypi/pyversions/py4phi.svg)](https://pypi.python.org/pypi/py4phi)
 # Functionality
 **py4phi** offers the following functionality to solve the problem mentioned above and more:
 **Encrypt a dataset column-wise.**
