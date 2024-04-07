@@ -40,7 +40,9 @@ def test_decrypt(encryptor, mocker, decryption_dict, columns):
     expected_calls = [call(col, decryption_dict[col])
                       for col in columns if col in decryption_dict]
     mock_decrypt_col.assert_has_calls(expected_calls, any_order=True)
-    assert mock_error.call_count == len(set(columns).difference(set(decryption_dict.keys())))
+    assert mock_error.call_count == len(
+        set(columns).difference(set(decryption_dict.keys()))
+    )
 
 
 def test_get_and_save_salt(encryptor):

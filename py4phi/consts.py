@@ -19,3 +19,6 @@ TMP_OUTPUT_DIR = "tmp-spark-py4phi"
 PYSPARK = 'pyspark'
 POLARS = 'polars'
 PANDAS = 'pandas'
+
+STR_TAG_START = 16
+STR_TAG_END = 32

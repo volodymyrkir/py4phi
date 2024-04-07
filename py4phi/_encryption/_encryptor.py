@@ -7,6 +7,7 @@ from base64 import b64encode, b64decode
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
+from py4phi.consts import STR_TAG_START, STR_TAG_END
 from py4phi.logger_setup import logger
 from py4phi.utils import DataFrame
 
@@ -54,8 +55,8 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
         Returns: (str) The decrypted string.
         """
         data = b64decode(data)
-        tag = data[16:32]  # TODO move to utils
-        ciphertext = data[32:]
+        tag = data[STR_TAG_START:STR_TAG_END]
+        ciphertext = data[STR_TAG_END:]
 
         cipher = AES.new(key, AES.MODE_GCM, nonce=aad)
         decrypted_data = unpad(
