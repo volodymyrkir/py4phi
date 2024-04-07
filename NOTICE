@@ -1,0 +1,25 @@
+NOTICE
+
+This project utilizes the following third-party dependencies:
+
+* **pandas** (BSD 3-Clause License): [https://pandas.pydata.org/docs/license.html]
+* **PySpark** (Apache License 2.0): [https://www.apache.org/licenses/LICENSE-2.0]
+* **iniconfig** (MIT License): [https://github.com/pytest-dev/iniconfig/blob/main/LICENSE]
+* **packaging** (Apache License 2.0): [https://github.com/pypa/packaging/blob/main/LICENSE.APACHE]
+* **pluggy** (MIT License): [https://github.com/pytest-dev/pluggy/blob/main/LICENSE]
+* **py4j** (BSD License): [https://github.com/py4j/py4j/blob/master/LICENSE.txt]
+* **configparser_crypt** (BSD 3-Clause License): [https://github.com/netinvent/configparser_crypt/blob/master/LICENSE]
+* **pycryptodome** (BSD 2-Clause License): [https://pycryptodome.readthedocs.io/en/latest/src/license.html]
+* **pyarrow** (Apache License 2.0): [https://github.com/apache/arrow/blob/main/LICENSE.txt]
+* **polars** (MIT License): [https://github.com/pola-rs/polars/blob/main/LICENSE]
+* **click** (BSD 3-Clause License): [https://github.com/pallets/click/blob/main/LICENSE.rst]
+* **scikit-learn** (BSD 3-Clause License): [https://github.com/scikit-learn/scikit-learn/blob/main/COPYING]
+* **scipy** (BSD 3-Clause License): [https://github.com/scipy/scipy/blob/main/LICENSE.txt]
+* **setuptools** (MIT License): [https://github.com/pypa/setuptools/blob/main/LICENSE]
+* **pytest** (MIT License): [https://docs.pytest.org/en/stable/license.html]
+* **pytest-mock** (MIT License): [https://github.com/pytest-dev/pytest-mock/blob/main/LICENSE]
+* **pytest-cov** (MIT License): [https://github.com/pytest-dev/pytest-cov/blob/master/LICENSE]
+* **mypy** (MIT License): [https://github.com/python/mypy/blob/master/LICENSE]
+* **ruff** (MIT License): [https://github.com/astral-sh/ruff/blob/main/LICENSE]
+
+The full text of each license can be found at the respective links above.
