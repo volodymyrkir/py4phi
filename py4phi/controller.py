@@ -97,6 +97,7 @@ class Controller:
             self,
             output_name: str = 'output_dataset',
             save_location: str = CWD,
+            save_format: str = None,
             config_file_name: str = DEFAULT_CONFIG_NAME,
             encrypt_config: bool = True,
             key_file_name: str = DEFAULT_SECRET_NAME,
@@ -111,6 +112,8 @@ class Controller:
         encrypt_config (bool, optional): Whether to encrypt config.
                                             Defaults to True.
         save_location (str, optional): Folder location to save all the outputs.
+        save_format (str, optional): Format of output file. Defaults to None,
+            If None - csv will be used.
         config_file_name (str, optional): Name of config to be saved.
                                     Defaults to DEFAULT_CONFIG_NAME.
         key_file_name (str, optional): Name of config to be saved.
@@ -123,7 +126,7 @@ class Controller:
 
         """
         if not self._encrypted:
-            logger.warn('Perhaps you forgot to encrypt your dataframe, aborting.')
+            logger.warning('Perhaps you forgot to encrypt your dataframe, aborting.')
             raise ValueError('No encryption action taken!')
 
         save_location = os.path.join(save_location, DEFAULT_PY4PHI_ENCRYPTED_NAME)
@@ -141,6 +144,7 @@ class Controller:
             self._current_df,
             output_name,
             save_location,
+            save_format,
             **kwargs
         )
         logger.info(f'Saved outputs to: {save_location}.')
@@ -215,8 +219,11 @@ class Controller:
             else self.__encryptor
         )
         if self.__columns_data:
-            decryption_dict = self.__columns_data
+            logger.debug(self.__columns_data)
+            decryption_dict = {key: val for key, val in self.__columns_data.items()
+                               if key in columns_to_decrypt}
             logger.debug("Decrypting previously encrypted dataframe, "
+                         f"for columns {list(decryption_dict.keys())} "
                          "ignoring provided configs paths...")
         else:
             logger.info(f'Kicking off decryption on current dataframe on columns: '
@@ -403,4 +410,3 @@ class Controller:
                 save_format=save_format,
                 **kwargs
             )
-

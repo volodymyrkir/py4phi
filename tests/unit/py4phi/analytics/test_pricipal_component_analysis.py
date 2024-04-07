@@ -136,3 +136,16 @@ def test_component_analysis_override(pca_obj, ignore, n_components, expected_len
     assert isinstance(result, pd.DataFrame)
     assert len(result) == len(pca_obj._df)
     assert len(result.columns) == expected_length
+
+
+@pytest.mark.parametrize('array,threshold,expected_components', [
+    (np.array([0.1, 0.2, 0.3]), 0.3, 2),
+    (np.array([0.1, 0.2, 0.3]), 0.4, 3),
+    (np.array([0.1, 0.2, 0.3]), 0.9, 3),
+    (np.array([0.1, 0.2, 0.3]), 0., 1),
+    (np.array([]), 0.9, 0),
+])
+def test_find_recommended_components(pca_obj, array, threshold, expected_components):
+    components = pca_obj._find_recommended_components(array, threshold)
+
+    assert components == expected_components

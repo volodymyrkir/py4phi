@@ -27,4 +27,4 @@ jobs:
         ruff check --config ruff-test.toml tests/
     - name: Run tests
       run: |
-        pytest ./tests/ --log-disable py4phi_logger --cov=./py4phi/ --cov-fail-under=90
+        pytest ./tests/ --log-disable py4phi_logger --cov=./py4phi/ --cov-fail-under=95

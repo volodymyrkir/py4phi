@@ -50,6 +50,9 @@ def from_path(
     reader = reader_cls()
     logger.debug(f"Reading dataframe using {type(reader)} "
                  f"from file: {path}, of type {file_type}.")
+    if not path.endswith(file_type):
+        logger.warning(f"Pay attention, path {path} "
+                       f"does not end with file type {file_type}")
 
     reader.read_file(path=path, file_type=file_type, **kwargs)
 

@@ -29,7 +29,8 @@ class _PolarsEncryptor(_BaseEncryptor):
         return self._df.with_columns(
             [
                 pl.col(column).map_elements(
-                    lambda x: self._encrypt_string(str(x), key, aad)
+                    lambda x: self._encrypt_string(str(x), key, aad),
+                    return_dtype=pl.String
                 ).alias(column)
             ]
         )
@@ -60,7 +61,8 @@ class _PolarsEncryptor(_BaseEncryptor):
         return self._df.with_columns(
             [
                 pl.col(column).map_elements(
-                    lambda x: self._decrypt_string(x, key, aad)
+                    lambda x: self._decrypt_string(x, key, aad),
+                    return_dtype=pl.String
                 ).alias(column)
             ]
         )

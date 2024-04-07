@@ -95,10 +95,12 @@ def test_save_encrypted(mocker, controller, tmp_path):
     controller._encrypted = True
     mock_save_config = mocker.patch.object(controller._config_processor, 'save_config')
     mock_write = mocker.patch.object(controller._dataset_handler, 'write')
+
     controller.save_encrypted(
         config_file_name='myconf',
         key_file_name='mykey',
         save_location=tmp_path,
+        save_format='parquet',
         **kwargs
     )
 
@@ -113,6 +115,7 @@ def test_save_encrypted(mocker, controller, tmp_path):
         controller._current_df,
         'output_dataset',
         str(tmp_path / DEFAULT_PY4PHI_ENCRYPTED_NAME),
+        'parquet',
         header=True,
         index=False
     )
@@ -151,12 +154,13 @@ def test_decrypt_encrypted(controller, mocker, encryption_cls):
     assert controller._decrypted is False
     encryption_cls.decrypt = mocker.Mock(return_value=controller._current_df)
     controller._encryption_cls = encryption_cls
-    controller._Controller__columns_data = 'decrypt_dict'
+    controller._Controller__columns_data = {'key': 'val'}
 
     result_df = controller.decrypt(['col1'])
+
     assert isinstance(controller._Controller__encryptor, encryption_cls)
     assert result_df is controller._current_df
-    encryption_cls.decrypt.assert_called_once_with('decrypt_dict')
+    encryption_cls.decrypt.assert_called_once_with({})
     assert controller._decrypted is True
 
 

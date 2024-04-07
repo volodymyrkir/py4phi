@@ -26,15 +26,17 @@ def test_from_path_wrong_engine():
     ('pandas', PandasDatasetHandler, pd.DataFrame),
     ('polars', PolarsDatasetHandler, pl.DataFrame)
 ])
-def test_from_path_engine(engine, expected_reader, tmp_path, expected_df_type):
-    file_path = tmp_path / 'file.csv'
+def test_from_path_engine(engine, expected_reader, tmp_path, expected_df_type, mocker):
+    file_path = tmp_path / 'file.parquet'
     with open(file_path, 'w') as f:
         f.write('A,B,C,D\n'
                 '1,2,3,4\n'
                 '5,6,7,8\n'
                 '9,10,11,12\n')
-
+    mock_warning_wrong_type = mocker.patch('py4phi.core.logger.warning')
     controller = from_path(str(file_path), file_type='csv', engine=engine)
+
+    mock_warning_wrong_type.assert_called_once()
     assert isinstance(controller._current_df, expected_df_type)
     assert isinstance(controller._dataset_handler, expected_reader)
 

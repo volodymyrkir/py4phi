@@ -21,7 +21,6 @@ def test_folder(tmp_path):
     file1.write_bytes(b"file1 content")
     file2.write_bytes(b"file2 content")
     yield folder
-    # Clean up the temporary folder after the test
     shutil.rmtree(folder)
 
 
@@ -33,6 +32,7 @@ def test_encrypt_folder(test_folder, mocker, encryptor):
                  mocker.MagicMock(return_value=b'1'))
     mock_cipher = mock_aes.return_value
     mock_cipher.encrypt_and_digest.return_value = (b'encrypted_data', b'tag')
+
     result = encryptor.encrypt_folder(test_folder)
 
     assert "model" in result
@@ -40,6 +40,13 @@ def test_encrypt_folder(test_folder, mocker, encryptor):
     assert "aad" in result["model"]
     assert len(result["model"]["key"]) == 32
     assert len(result["model"]["aad"]) == 32
+
+
+def test_encrypt_folder_not_exists(test_folder, encryptor):
+    fake_folder = test_folder / 'fake_folder'
+
+    with pytest.raises(FileNotFoundError):
+        encryptor.encrypt_folder(fake_folder)
 
 
 def test_decrypt_folder(tmp_path, mocker,encryptor):

@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["py4phi*", "cli*"]
-exclude = ["tests*", "scripts*"]
 
 [project]
 name="py4phi"
@@ -33,7 +32,7 @@ dependencies = [
 ]
 
 [project.scripts]
-cli = "cli.cli_main:main"
+py4phi = "cli.cli_main:main"
 
 
 [project.optional-dependencies]

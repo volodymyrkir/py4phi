@@ -27,6 +27,9 @@ class ModelEncryptor:
         """
         key, aad = bytes.fromhex(token_hex(16)), bytes.fromhex(token_hex(16))
         logger.info(f"Encrypting model/folder at {folder_path}")
+        if not os.path.exists(folder_path):
+            raise FileNotFoundError(f'No directory at {folder_path}')
+
         for root, dirs, files in os.walk(folder_path):
             for filename in files:
                 file_path = os.path.join(root, filename)

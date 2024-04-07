@@ -1,5 +1,6 @@
 """Module with principal component analysis logic for py4phi."""
 import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -14,6 +15,36 @@ class PrincipalComponentAnalysis(Analytics):
     def __init__(self, df: pd.DataFrame, target_column: str | None = None) -> None:
         super().__init__(df, target_column)
         self.scaler = StandardScaler()
+
+    @staticmethod
+    def _find_recommended_components(
+            explained_variance: NDArray,
+            rec_threshold: float
+    ) -> int:
+        """
+        Find the recommended number of PCA components based on explained variance.
+
+        Args:
+        ----
+        explained_variance (NDArray): A NumPy array containing the
+         explained variance ratio per component.
+        rec_threshold (float): The desired minimum explained variance ratio.
+
+        Returns: (int) The recommended number of PCA components.
+        """
+        cumulative_variance = 0
+        num_components = 0
+
+        for var in explained_variance:
+            cumulative_variance += var
+            num_components += 1
+            if cumulative_variance >= rec_threshold:
+                break
+
+        if cumulative_variance < rec_threshold:
+            num_components = len(explained_variance)
+
+        return num_components
 
     def handle_nulls(self, df: pd.DataFrame, mode: str = 'fill') -> pd.DataFrame:
         """
@@ -48,7 +79,7 @@ class PrincipalComponentAnalysis(Analytics):
         elif mode == 'drop':
             len_before = len(df)
             df = df.dropna(axis=0, how='any')
-            logger.warn(f'Dropped {len_before - len(df)} records with NA values.')
+            logger.warning(f'Dropped {len_before - len(df)} records with NA values.')
         else:
             raise ValueError(f'Not supported null handle mode {mode}.')
 
@@ -122,7 +153,8 @@ class PrincipalComponentAnalysis(Analytics):
         if pca_components > features.shape[1]:
             raise ValueError("Can't perform PCA with number of "
                              "components more than the number of original features.")
-        logger.info(f'Performing analysis-PCA with {pca_components} components.')
+        logger.info(f'Performing principal component analysis'
+                    f' with {pca_components} components.')
         pca = PCA(n_components=pca_components)
 
         pca.fit(scaled_data)
@@ -130,9 +162,11 @@ class PrincipalComponentAnalysis(Analytics):
         logger.info('PCA explained variance:')
         for component, variance in enumerate(explained_variance, 1):
             logger.info(f'Component #{component}: {variance:.2%}')
-        n_components_to_keep = np.where(
-            np.cumsum(pca.explained_variance_ratio_) >= rec_threshold
-        )[0][0] + 1
+
+        n_components_to_keep = self._find_recommended_components(
+            explained_variance, rec_threshold
+        )
+
         logger.info("Explained variance suggests keeping"
                     f" at least {n_components_to_keep} components "
                     f"({rec_threshold:.2%} cumulative variance).")
