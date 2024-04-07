@@ -81,7 +81,7 @@ controller.save_decrypted(
 controller = from_path(
     './Titanic.parquet',
     'parquet',
-    engine='polars',  # or polars, pandas
+    engine='polars',  # or pyspark or pandas
     log_level='DEBUG'
 )
 
