@@ -28,7 +28,7 @@ class _PySparkEncryptor(_BaseEncryptor):
                 .withColumn(column,
                             f.base64(
                                 f.aes_encrypt(
-                                            input=f.col(column).cast(t.BinaryType()),
+                                            input=f.col(column).cast(t.StringType()),
                                             key=f.lit(self._columns[column]['key']),
                                             aad=f.lit(self._columns[column]['aad'])
                                 )

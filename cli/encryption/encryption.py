@@ -1,4 +1,5 @@
 """Module containing the encryption CLI commands."""
+from pathlib import Path
 
 import click
 
@@ -116,6 +117,7 @@ def decrypt_and_save(
 
     controller = from_path(input_path, file_type, **opt_read_params)
     controller.decrypt(
+        configs_path=str(Path(input_path).parent.absolute()),
         columns_to_decrypt=columns_to_decrypt,
         config_encrypted=not config_not_encrypted
     )
@@ -167,6 +169,7 @@ def decrypt(
 
     controller = from_path(input_path, file_type, **opt_read_params)
     controller.decrypt(
+        configs_path=str(Path(input_path).parent.absolute()),
         columns_to_decrypt=columns_to_decrypt,
         config_encrypted=not config_not_encrypted
     )

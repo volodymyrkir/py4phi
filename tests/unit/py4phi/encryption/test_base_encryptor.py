@@ -24,19 +24,23 @@ def test_encrypt(encryptor, mocker):
     }
 
 
-@pytest.mark.parametrize('decryption_dict, not_called', [
-    ({'col2': {'key': 'val'}, 'col1': {'key': 'val'}}, ''),
-    ({'col2': {'key': 'val'}}, {'col1': {'key': 'val'}})
+@pytest.mark.parametrize('decryption_dict,columns', [
+    ({'col2': {'key': 'val'}, 'col1': {'key': 'val'}}, ['col2']),
+    ({'col2': {'key': 'val'}}, ['col2', 'col1'])
 ])
-def test_decrypt(encryptor, mocker, decryption_dict, not_called):
+def test_decrypt(encryptor, mocker, decryption_dict, columns):
     mock_decrypt_col = mocker.MagicMock(return_value='df')
     mocker.patch.object(_BaseEncryptor, '_decrypt_column', mock_decrypt_col)
-    encryptor._columns = decryption_dict.keys()
+    mock_error = mocker.patch('py4phi._encryption._encryptor.logger.error')
+    encryptor._columns = columns
+
     df = encryptor.decrypt(decryption_dict)
-    assert mock_decrypt_col.call_count == len(decryption_dict)
+    assert mock_decrypt_col.call_count == 1
     assert df == 'df'
-    expected_calls = [call(col, decrypt) for col, decrypt in decryption_dict.items()]
+    expected_calls = [call(col, decryption_dict[col])
+                      for col in columns if col in decryption_dict]
     mock_decrypt_col.assert_has_calls(expected_calls, any_order=True)
+    assert mock_error.call_count == len(set(columns).difference(set(decryption_dict.keys())))
 
 
 def test_get_and_save_salt(encryptor):

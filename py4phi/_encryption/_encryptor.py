@@ -123,7 +123,11 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
         """
         for column in self._columns:
             logger.info(f"Decrypting column: {column}.")
-            self._df = self._decrypt_column(column, decryption_dict[column])
+            if column in decryption_dict:
+                self._df = self._decrypt_column(column, decryption_dict[column])
+            else:
+                logger.error(f"Column {column} is not in decryption config,"
+                             f" cannot decrypt it.")
         return self._df
 
     def _get_and_save_salt(self, column: str) -> None:
