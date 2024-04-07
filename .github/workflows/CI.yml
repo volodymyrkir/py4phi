@@ -3,7 +3,7 @@ name: Continuous Integration
 on: [push]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -28,3 +28,24 @@ jobs:
     - name: Run tests
       run: |
         pytest ./tests/ --log-disable py4phi_logger --cov=./py4phi/ --cov-fail-under=95
+    - name: Upload coverage data to coveralls.io
+      run: |
+          pip3 install coveralls
+          coveralls --service=github
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_FLAG_NAME: ${{ matrix.test-name }}
+        COVERALLS_PARALLEL: true
+        
+  coveralls:
+    name: Indicate completion to coveralls.io
+    needs: test
+    runs-on: ubuntu-latest
+    container: python:3-slim
+    steps:
+    - name: Finished
+      run: |
+        pip3 install --upgrade coveralls
+        coveralls --service=github --finish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
