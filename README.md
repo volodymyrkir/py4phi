@@ -2,6 +2,11 @@
 **py4phi** is a simple solution for the complex problem of dealing with sensitive data.
 
 In the modern IT world, sharing a dataset with sensitive data is common, especially if a team working on it is wide. It can be used for various purposes, including building a ML/DL model, simple business analysis, etc. Of course, in most companies, different restrictions are applied on the data, including row-level security, column hashing, or encrypting, but this requires at least some knowledge of data engineering libraries and can be  a challenging and time-consuming task. At the same time, employees with access to sensitive parts of the data may not have such expertise, which is where **py4phi** can be helpful.
+
+[![Coverage Status](https://coveralls.io/repos/github/volodymyrkir/py4phi/badge.svg?branch=ci_update)](https://coveralls.io/github/volodymyrkir/py4phi?branch=ci_update)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/py4phi)
+[![image](https://img.shields.io/pypi/v/py4phi.svg)](https://pypi.python.org/pypi/py4phi)
+[![image](https://img.shields.io/pypi/l/py4phi.svg)](https://pypi.python.org/pypi/py4phi)
 # Functionality
 **py4phi** offers the following functionality to solve the problem mentioned above and more:
 **Encrypt a dataset column-wise.**

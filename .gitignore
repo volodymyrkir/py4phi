@@ -6,3 +6,5 @@ py4phi_model_*
 .coverage
 .mypy.ini
 *egg-info
+build
+dist
