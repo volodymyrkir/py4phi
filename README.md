@@ -8,6 +8,9 @@ In the modern IT world, sharing a dataset with sensitive data is common, especia
 [![image](https://img.shields.io/pypi/v/py4phi.svg)](https://pypi.python.org/pypi/py4phi)
 [![image](https://img.shields.io/pypi/l/py4phi.svg)](https://pypi.python.org/pypi/py4phi)
 [![image](https://img.shields.io/pypi/pyversions/py4phi.svg)](https://pypi.python.org/pypi/py4phi)
+[![image](https://img.shields.io/pypi/format/py4phi)](https://img.shields.io/pypi/format/py4phi)
+[![image](https://img.shields.io/pypi/status/py4phi)](https://img.shields.io/pypi/status/py4phi)
+
 # Functionality
 **py4phi** offers the following functionality to solve the problem mentioned above and more:
 **Encrypt a dataset column-wise.**
@@ -17,8 +20,9 @@ In the modern IT world, sharing a dataset with sensitive data is common, especia
 **Perform principal component analysis on a dataset**
 **Perform correlation analysis for feature selection on a dataset**
 You can use **py4phi** both in Python code and through your terminal via the convenient CLI interface.
-#Setup and prerequisites
-In order to install the library [from PyPi](), just run
+# Setup and prerequisites
+
+In order to install the library [from PyPi](https://pypi.org/project/py4phi/), just run
 ```shell
 pip install py4phi
 ```
@@ -28,11 +32,51 @@ pip install py4phi
 * [PySpark](https://spark.apache.org/docs/latest/api/python/index.html)
 * [Polars](https://pola.rs/) 
 
-NOTE: Default engine for CLI is Pandas, whereas for library - PySpark.
+Default engine for CLI is Pandas, whereas for library - PySpark.
 
-Nevertheless, you'll need a JDK installed and a JAVA_HOME environment variable set in order 
-to work with the PySpark engine. 
-However, you can still work with Pandas or Polars without JDK, if you wish.
+**NOTE: You can avoid steps below and still be able to use pandas or polars engines if that suits your needs.**
+## Pyspark installation
+
+You'll need a JDK installed and a JAVA_HOME environment variable set in order 
+to work with the PySpark engine on UNIX-like systems. 
+### Windows pyspark installation
+Apart from the JDK and JAVA_HOME variable, in order to work with pyspark engine, you will have to:
+1. Download and extract Spark 3.5.0+.
+2. Download winutils.exe and hadoop.dll.
+3. Add these files to /hadoop/bin folder.
+4. Set HADOOP_HOME environment variable pointing to $absolute_path/hadoop/bin.
+5. You may need to also set SPARK_HOME and PYSPARK_PYTHON environment variables.
+
+For more detailed info, please go through [this guide](https://saumyagoyal.medium.com/how-to-install-pyspark-on-windows-faf7ac293ecf).
+# API help
+**py4phi** documentation is still TBD, however API is pretty simple
+and most parameters are covered in the Usage section below and in the /examples folder.
+
+## Library API
+**py4phi.core** currently exposes 4 main functions.
+* from_path - allows you to initialize py4phi Controller(read below) from a file. 
+* from_dataframe - initialize with a dataframe (Pandas/Polars/PySpark).
+* encrypt_model - encrypt any folder or ML model INPLACE 
+* decrypt_model - decrypt any folder or ML model.
+
+The Controller itself has a lot of functionality,
+including encryption/decryption of a dataframes,
+feature selection and principal component analysis.
+
+## Terminal API
+As previously mentioned, you can perform all the same actions from your terminal.
+to get list of available commands, enter
+
+```shell
+py4phi --help
+```
+
+to get options/parameters of a specific command (e.g. encrypt), enter
+
+```shell
+py4phi encrypt --help
+```
+
 # Usage
 You can integrate **py4phi** in your existing pandas/pyspark/polars data pipeline by 
 initializing from a DataFrame or loading from a file. Currently, CSV and Parquet 
@@ -51,12 +95,12 @@ The following example showcases the encryption process of a dataset.csv file. \
 The output dataset, along with the decryption configs, is then saved to the "test_folder" directory under CWD,
 
 ```python
-from py4phi.core import from_path
+from py4phi.core import from_path, PYSPARK
 
 controller = from_path(
     './dataset.csv',
     'csv',
-    engine='pyspark',
+    engine=PYSPARK,
     log_level='DEBUG',
     header=True  # pyspark read option
 )
@@ -138,8 +182,8 @@ can perform a lightweight **PCA/feature selection** in a couple of code lines or
 To perform principal component analysis with Python, use: 
 
 ```python
-from py4phi.core import from_path
-controller = from_path('Titanic.parquet', file_type='parquet', engine='pyspark')
+from py4phi.core import from_path, PYSPARK
+controller = from_path('Titanic.parquet', file_type='parquet', engine=PYSPARK)
 controller.perform_pca(
     target_feature='Survived',
     ignore_columns=['Name', 'Sex', 'Ticket', 'Cabin', 'Embarked'],
@@ -156,8 +200,8 @@ py4phi perform-pca -i ./dataset.csv  --target 'Staff involved' -c ACF
 To perform feature selection with Python, use: 
 
 ```python
-from py4phi.core import from_path
-controller = from_path('Titanic.parquet', file_type='parquet', engine='polars')
+from py4phi.core import from_path, POLARS
+controller = from_path('Titanic.parquet', file_type='parquet', engine=POLARS)
 controller.perform_feature_selection(
     target_feature='Survived',
     target_correlation_threshold=0.2,

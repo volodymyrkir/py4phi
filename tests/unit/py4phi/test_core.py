@@ -34,7 +34,7 @@ def test_from_path_engine(engine, expected_reader, tmp_path, expected_df_type, m
                 '5,6,7,8\n'
                 '9,10,11,12\n')
     mock_warning_wrong_type = mocker.patch('py4phi.core.logger.warning')
-    controller = from_path(str(file_path), file_type='csv', engine=engine)
+    controller = from_path(str(file_path), file_type='CSV', engine=engine)
 
     mock_warning_wrong_type.assert_called_once()
     assert isinstance(controller._current_df, expected_df_type)
