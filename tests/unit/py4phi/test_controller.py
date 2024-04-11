@@ -188,21 +188,25 @@ def test_decrypt_missing_configs(controller, mocker, encryption_cls):
 ])
 def test_decrypt_default(controller, mocker, encryption_cls, tmp_path):
     assert controller._decrypted is False
-    controller._config_processor.read_config = mocker.Mock(return_value='decrypt_dict')
+    controller._config_processor.read_config = mocker.Mock(
+        return_value={'col1': 'value', 'col2': 'value2'}
+    )
     encryption_cls.decrypt = mocker.Mock(return_value=controller._current_df)
     controller._encryption_cls = encryption_cls
 
     result = controller.decrypt(
-        columns_to_decrypt=['col1'],
         configs_path=str(tmp_path),
         config_file_name='decrypt.conf',
         config_encrypted=False,
-        key_file_name='key.key'
+        key_file_name='key.key',
+        columns_mapping={'col1': 'col1new'}
     )
 
-    encryption_cls.decrypt.assert_called_once_with('decrypt_dict')
+    encryption_cls.decrypt.assert_called_once_with({'col1new': 'value',
+                                                    'col2': 'value2'})
     assert controller._decrypted is True
     assert result is controller._current_df
+    assert controller._Controller__encryptor._columns == ['col1new', 'col2']
     controller._config_processor.read_config.assert_called_once_with(
         str(tmp_path),
         conf_file_name='decrypt.conf',

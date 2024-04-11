@@ -1,5 +1,4 @@
-import pandas as pd
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, functions as f
 
 from py4phi.core import from_dataframe, from_path
 
@@ -16,19 +15,18 @@ controller.encrypt(columns_to_encrypt=['Staff involved', 'ACF'])
 controller.print_current_df()
 controller.save_encrypted(
     output_name='my_encrypted_file',
-    save_location='./test_folder/',   # results will be saved under CWD/test_folder/py4phi_encrypted_outputs
+    save_location='./test_folder/',  # results will be saved under CWD/test_folder/py4phi_encrypted_outputs
     save_format='PARQUET',
 )
 
 # 2) load from dataframe, encrypt intermediate, print and save WITHOUT encrypting decryption configs
-df = pd.read_csv('dataset.csv')
 controller = from_dataframe(df, log_level='DEBUG')
 controller.print_current_df()
 controller.encrypt(columns_to_encrypt=['Staff involved', 'ACF'])
 controller.print_current_df()
 controller.save_encrypted(
     output_name='my_encrypted_dataframe',
-    save_location='./test_folder2/',   # results will be saved under CWD/test_folder2/py4phi_encrypted_outputs
+    save_location='./test_folder2/',  # results will be saved under CWD/test_folder2/py4phi_encrypted_outputs
     save_format='csv',
     encrypt_config=False,
     index=False,  # Pandas csv write option
@@ -36,9 +34,14 @@ controller.save_encrypted(
 )
 
 # 3) load the previously encrypted file from a pyspark dataframe,
-# decrypt, print intermediate result and save at the same folder
+# rename column, decrypt and map old column to new,
+# print intermediate result and save at the same folder
 spark = SparkSession.builder.getOrCreate()
 df = spark.read.parquet('./test_folder/py4phi_encrypted_outputs/my_encrypted_file.parquet')
+df = (
+    df.withColumn('ACFNEW', f.col('ACF'))
+    .drop('ACF')
+)
 controller = from_dataframe(
     df,
     log_level='DEBUG'
@@ -47,6 +50,7 @@ controller.print_current_df()
 controller.decrypt(
     columns_to_decrypt=['Staff involved', 'ACF'],
     configs_path='./test_folder/py4phi_encrypted_outputs',  # provide path where decryption configs reside
+    columns_mapping={'ACF': 'ACFNEW'}   # This feature is not available in the CLI yet
 )
 controller.print_current_df()
 controller.save_decrypted(

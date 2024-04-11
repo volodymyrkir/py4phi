@@ -13,7 +13,7 @@ version = "0.9.1"
 description="A library for encryption/decryption and analysis of sensitive data."
 readme = "README.md"
 classifiers=[
-    "Development Status :: 5 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.10",

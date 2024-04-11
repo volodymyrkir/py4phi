@@ -188,11 +188,12 @@ class Controller:
 
     def decrypt(
             self,
-            columns_to_decrypt: list[str],
+            columns_to_decrypt: list[str] = None,
             configs_path: str = CWD,
             config_file_name: str = DEFAULT_CONFIG_NAME,
             config_encrypted: bool = True,
-            key_file_name: str = DEFAULT_SECRET_NAME
+            key_file_name: str = DEFAULT_SECRET_NAME,
+            columns_mapping: dict[str, str] = None
     ) -> BaseDF:
         """
         Decrypt specified columns in dataset.
@@ -209,12 +210,16 @@ class Controller:
                                     Defaults to DEFAULT_CONFIG_NAME.
         key_file_name (str): Name of config to be saved.
                                 Defaults to DEFAULT_SECRET_NAME.
+        columns_mapping (dict[str,str]): Mapping of columns, that were
+                                            originally in the config to new names.
+                                            key - old name, value - new name,
+                                            Defaults to None.
 
         Returns: Decrypted dataframe.
 
         """
         self.__encryptor = (
-            self._encryption_cls(self._current_df, columns_to_decrypt)
+            self._encryption_cls(self._current_df, columns_to_decrypt or [])
             if not self.__encryptor
             else self.__encryptor
         )
@@ -226,8 +231,9 @@ class Controller:
                          f"for columns {list(decryption_dict.keys())} "
                          "ignoring provided configs paths...")
         else:
-            logger.info(f'Kicking off decryption on current dataframe on columns: '
-                        f'{columns_to_decrypt}. ')
+            if columns_to_decrypt:
+                logger.info(f'Kicking off decryption on current dataframe for columns: '
+                            f'{columns_to_decrypt}. ')
             try:
                 logger.info(f'Config path is {configs_path}. '
                             f"{'Config is encrypted' if config_encrypted else ''}")
@@ -237,11 +243,22 @@ class Controller:
                     config_encrypted=config_encrypted,
                     key_file_name=key_file_name
                 )
+                if not columns_to_decrypt:
+                    logger.info('No columns to decrypt provided, '
+                                'will decrypt all columns from the config:\n'
+                                f'{list(decryption_dict.keys())}')
+                    self.__encryptor._columns = list(decryption_dict.keys())
             except FileNotFoundError:
                 raise FileNotFoundError(
                     f"Decryption config files not found under {configs_path}. "
                 )
-
+        if columns_mapping:
+            for key, val in columns_mapping.items():
+                if key in decryption_dict:
+                    decryption_dict[val] = decryption_dict.pop(key)
+            self.__encryptor._columns = [
+                columns_mapping.get(key, key) for key in self.__encryptor._columns
+            ]
         self._current_df = self.__encryptor.decrypt(decryption_dict)
         self._decrypted = True
         logger.info('Successfully decrypted current df.')

@@ -28,11 +28,11 @@ pip install py4phi
 ```
 
 ### **py4phi** is compatible with the following engines for data processing and encryption:
-* [Pandas](https://github.com/pandas-dev/pandas)
-* [PySpark](https://spark.apache.org/docs/latest/api/python/index.html)
-* [Polars](https://pola.rs/) 
+* [Pandas](https://github.com/pandas-dev/pandas)(v. 2.2.0+)
+* [PySpark](https://spark.apache.org/docs/latest/api/python/index.html)(v. 3.5.0+)
+* [Polars](https://pola.rs/)(v. 0.20.9)
 
-Default engine for CLI is Pandas, whereas for library - PySpark.
+Default engine for CLI is Pandas, whereas for the library - PySpark.
 
 **NOTE: You can avoid steps below and still be able to use pandas or polars engines if that suits your needs.**
 ## Pyspark installation
@@ -177,7 +177,8 @@ In a typical scenario, this requires a lot of effort from the data analyst.
 Instead, a person with access to the sensitive data 
 can perform a lightweight **PCA/feature selection** in a couple of code lines or terminal commands.
 
-**NOTE**: This functionality is a quick top-level analysis, diving deeper into a dataset's feature analysis will always bring more profit.
+**NOTE**: _This functionality is a quick top-level analysis,
+diving deeper into a dataset's feature analysis will always bring more profit._
 
 To perform principal component analysis with Python, use: 
 
@@ -196,6 +197,12 @@ Via terminal:
 ```shell
 py4phi perform-pca -i ./dataset.csv  --target 'Staff involved' -c ACF
 ```
+
+**NOTE** _In order to suggest feature - candidates for dropping,
+correlation analysis is leveraged. As for categorical features, Cramers V measure is used to calculate correlation. 
+It is heavily impacted by dataset's size, so please consider ignoring string columns
+for feature selection unless your data is bigger than at least 100-200 rows. In general, keep in mind that this
+analysis is kind of top-level._
 
 To perform feature selection with Python, use: 
 
@@ -217,4 +224,4 @@ py4phi feature-selection -i ./Titanic.parquet --target Survived --target_corr_th
 ```
 
 Please look into the [/examples](https://github.com/volodymyrkir/py4phi/tree/main/examples) folder for more examples.
-It also contains training datasets.
+It also contains respective demo datasets.
