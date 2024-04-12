@@ -9,7 +9,7 @@ include = ["py4phi*", "cli*"]
 name="py4phi"
 requires-python = ">=3.10"
 license={file="LICENSE"}
-version = "0.9.1"
+version = "1.0.0"
 description="A library for encryption/decryption and analysis of sensitive data."
 readme = "README.md"
 classifiers=[
