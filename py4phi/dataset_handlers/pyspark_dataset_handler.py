@@ -16,7 +16,9 @@ class PySparkDatasetHandler(BaseDatasetHandler):
 
     def __init__(self):
         super().__init__()
-        log4j_props_path = os.path.normpath(os.path.abspath(files(py4phi) / "log4j.properties"))
+        log4j_props_path = os.path.normpath(
+            os.path.abspath(files(py4phi) / "log4j.properties")
+        )
         log4j_props_path = log4j_props_path.replace(os.sep, os.sep + os.sep)
         self._spark = (
             SparkSession.builder.appName('py4phi')
