@@ -122,6 +122,8 @@ class _BaseEncryptor(ABC, Generic[DataFrame]):
         Returns: Decrypted dataframe.
 
         """
+        logger.info(f"Decrypting columns: {decryption_dict}")
+        logger.info(f'{self._columns}')
         for column in self._columns:
             logger.info(f"Decrypting column: {column}.")
             if column in decryption_dict:

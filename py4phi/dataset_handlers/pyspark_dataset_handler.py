@@ -16,11 +16,14 @@ class PySparkDatasetHandler(BaseDatasetHandler):
 
     def __init__(self):
         super().__init__()
-        log4j_props_path = files(py4phi) / "log4j.properties"
+        log4j_props_path = os.path.normpath(
+            os.path.abspath(files(py4phi) / "log4j.properties")
+        )
+        log4j_props_path = log4j_props_path.replace(os.sep, os.sep + os.sep)
         self._spark = (
             SparkSession.builder.appName('py4phi')
             .config("spark.driver.extraJavaOptions",
-                    f"-Dlog4j.configuration=file:{log4j_props_path}")
+                    f"-Dlog4j2.configuration={log4j_props_path}")
             .getOrCreate()
         )
 

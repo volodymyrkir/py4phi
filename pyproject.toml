@@ -9,20 +9,24 @@ include = ["py4phi*", "cli*"]
 name="py4phi"
 requires-python = ">=3.10"
 license={file="LICENSE"}
-version = "0.9.1"
+version = "1.0.0"
 description="A library for encryption/decryption and analysis of sensitive data."
 readme = "README.md"
 classifiers=[
-    "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: MIT License",
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Healthcare Industry",
     "Topic :: Security",
-    "Topic :: Scientific/Engineering"
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+
+    "Environment :: Console"
 ]
 
 authors = [
